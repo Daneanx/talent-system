@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import TalentProfile, Event, Application
 from datetime import date
+import re
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -15,6 +16,22 @@ class UserSerializer(serializers.ModelSerializer):
 
 class TalentProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
+
+    def validate_skills(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Поле навыков не может быть пустым.")
+        # Проверяем, что навыки разделены запятыми и не содержат некорректных символов
+        skills = [skill.strip() for skill in value.split(',')]
+        if not all(skill for skill in skills):
+            raise serializers.ValidationError("Навыки должны быть разделены запятыми без пустых значений.")
+        if not all(re.match(r'^[a-zA-Z0-9\s]+$', skill) for skill in skills):
+            raise serializers.ValidationError("Навыки могут содержать только буквы, цифры и пробелы.")
+        return ', '.join(skills)
+
+    def validate_preferences(self, value):
+        if value and not re.match(r'^[a-zA-Z0-9\s,]+$', value):
+            raise serializers.ValidationError("Предпочтения могут содержать только буквы, цифры, пробелы и запятые.")
+        return value
 
     class Meta:
         model = TalentProfile
@@ -31,6 +48,21 @@ class TalentProfileSerializer(serializers.ModelSerializer):
 class EventSerializer(serializers.ModelSerializer):
     organizer = UserSerializer(read_only=True)
     date = serializers.DateField()
+
+    def validate_required_skills(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Поле требуемых навыков не может быть пустым.")
+        skills = [skill.strip() for skill in value.split(',')]
+        if not all(skill for skill in skills):
+            raise serializers.ValidationError("Навыки должны быть разделены запятыми без пустых значений.")
+        if not all(re.match(r'^[a-zA-Z0-9\s]+$', skill) for skill in skills):
+            raise serializers.ValidationError("Навыки могут содержать только буквы, цифры и пробелы.")
+        return ', '.join(skills)
+
+    def validate_date(self, value):
+        if value < date.today():
+            raise serializers.ValidationError("Дата мероприятия не может быть в прошлом.")
+        return value
 
     class Meta:
         model = Event

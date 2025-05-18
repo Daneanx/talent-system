@@ -32,10 +32,18 @@ def login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             refresh = RefreshToken.for_user(user)
-            return Response({
+            response = Response({
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
             }, status=status.HTTP_200_OK)
+            response.set_cookie(
+                key='access_token',
+                value=str(refresh.access_token),
+                httponly=True,
+                secure=False,  # Для разработки
+                samesite='Lax',
+            )
+            return response
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
     return Response({'error': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -47,13 +55,6 @@ def create_application(request):
         serializer.save(user=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_profiles(request):
-    profiles = TalentProfile.objects.filter(user=request.user).order_by('id') # Сортировка по ID
-    serializer = TalentProfileSerializer(profiles, many=True)
-    return Response(serializer.data)
 
 # Метод рекомендаций
 @api_view(['GET'])
@@ -67,12 +68,19 @@ def get_recommendations(request):
     except TalentProfile.DoesNotExist:
         return Response({'error': 'Profile not found'}, status=404)
 
-    user_skills = profile.skills.split(', ')
-    events = Event.objects.filter(required_skills__in=user_skills)
-    serializer = EventSerializer(events, many=True)
+    user_skills = set(profile.skills.split(', '))
+    events = Event.objects.all()
+    matched_events = []
+
+    for event in events:
+        required_skills = set(event.required_skills.split(', '))
+        common_skills = user_skills.intersection(required_skills)
+        # Рекомендует пользователю, если совпадает >= 80% требуемых навыков
+        if len(common_skills) / len(required_skills) >= 0.8:
+            matched_events.append(event)
+
+    serializer = EventSerializer(matched_events, many=True)
     return Response(serializer.data)
-#    except TalentProfile.DoesNotExist:
-#        return Response({"detail": "No profile found for this user"}, status=404) # Временное решение (от крашей при попытке Django найти профиль пользователя, которого нет, в базе данных)
 
 class TalentProfileViewSet(viewsets.ModelViewSet):
     queryset = TalentProfile.objects.all()
@@ -89,6 +97,8 @@ class TalentProfileViewSet(viewsets.ModelViewSet):
         else:
             # Если профиль новый, сохраняем
             serializer.save(user=user)
+    def get_queryset(self):
+        return TalentProfile.objects.filter(user=self.request.user)
 
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all().order_by('-date') # Сортировка по дате
@@ -116,5 +126,14 @@ class RecommendationView(ListAPIView):
 
     def get_queryset(self):
         profile = TalentProfile.objects.get(user=self.request.user)
-        user_skills = profile.skills.split(', ')
-        return Event.objects.filter(required_skills__in=user_skills).order_by('-date')
+        user_skills = set(profile.skills.split(', '))
+        events = Event.objects.all()
+        matched_events = []
+
+        for event in events:
+            required_skills = set(event.required_skills.split(', '))
+            common_skills = user_skills.intersection(required_skills)
+            if len(common_skills) / len(required_skills) >= 0.8:
+                matched_events.append(event.id)
+
+        return Event.objects.filter(id__in=matched_events).order_by('-date')
