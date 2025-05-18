@@ -152,7 +152,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
     ),
-    'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
+    'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler', 
 }
 
 # Настройка параметров токенов
@@ -161,9 +161,14 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_COOKIE': 'access_token',  # Имя куки
+    'AUTH_COOKIE_HTTP_ONLY': True,  # Доступно только через HTTP
+    'AUTH_COOKIE_SECURE': False,  # Для разработки (в продакшене True)
+    'AUTH_COOKIE_SAMESITE': 'Lax',
 }
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
 ]
