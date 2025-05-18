@@ -12,8 +12,7 @@ const Login = ({ setToken }) => {
         try {
             const response = await axios.post('http://127.0.0.1:8000/api/login/', { username, password });
             console.log('Ответ сервера:', response.data);
-            setToken(response.data.access);
-            localStorage.setItem('token', response.data.access);
+            setToken(response.data.access); // Сохраняем токен в состоянии
             setError('');
         } catch (err) {
             console.error('Ошибка входа:', err.response?.data || err.message);

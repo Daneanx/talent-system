@@ -51,36 +51,4 @@ const App = () => {
         </Router>
     );
 };
-
-const useAuth = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-    useEffect(() => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        axios.get('http://localhost:8000/api/profiles/', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(() => setIsAuthenticated(true))
-        .catch(() => {
-          localStorage.removeItem('token');
-          setIsAuthenticated(false);
-        });
-      }
-    }, []);
-  
-    return isAuthenticated;
-  };
-  
-  function App() {
-    const isAuthenticated = useAuth();
-  
-    return (
-      <div>
-        {isAuthenticated ? <button onClick={() => localStorage.removeItem('token')}>Выйти</button> : <button onClick={login}>Войти</button>}
-        {/* Остальной контент */}
-      </div>
-    );
-  }
-
 export default App;

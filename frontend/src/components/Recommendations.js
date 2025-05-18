@@ -5,105 +5,101 @@ const Recommendations = ({ token }) => {
     const [events, setEvents] = useState([]);
     const [error, setError] = useState(null);
     const [page, setPage] = useState(1);
-    const [pagination, setPagination] = useState({ next: null, previous: null, count: 0 });
-    const [filters, setFilters] = useState({ required_skills: '', date: '' });
+    const [hasNext, setHasNext] = useState(false);
 
     useEffect(() => {
         const fetchRecommendations = async () => {
             try {
-                const params = new URLSearchParams({ page });
-                if (filters.required_skills) params.append('required_skills', filters.required_skills);
-                if (filters.date) params.append('date', filters.date);
-                const response = await axios.get(`http://127.0.0.1:8000/api/recommendations/?${params.toString()}`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                const response = await axios.get(`http://127.0.0.1:8000/api/recommendations/?page=${page}`, {
+                    headers: { Authorization: `Bearer ${token}` },
                 });
-                setEvents(response.data.results);
-                setPagination({
-                    next: response.data.next,
-                    previous: response.data.previous,
-                    count: response.data.count
-                });
+                setEvents(response.data.results || response.data);
+                setHasNext(!!response.data.next);
+                setError(null);
             } catch (err) {
-                const errorMessage = err.response?.data?.message || 'Не удалось загрузить рекомендации';
-                const errorDetails = err.response?.data?.errors
-                    ? Object.values(err.response.data.errors).join(', ')
-                    : '';
-                setError(`${errorMessage}${errorDetails ? `: ${errorDetails}` : ''}`);
+                console.error('Ошибка загрузки рекомендаций:', err.response?.data || err.message);
+                setError('Не удалось загрузить рекомендации');
             }
         };
         fetchRecommendations();
-    }, [token, page, filters]);
+    }, [token, page]);
 
-    const handleApply = async (eventId) => {
-        try {
-            await axios.post(
-                'http://127.0.0.1:8000/api/applications/',
-                { event: eventId },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            alert('Заявка подана!');
-        } catch (err) {
-            const errorMessage = err.response?.data?.message || 'Ошибка подачи заявки';
-            const errorDetails = err.response?.data?.errors
-                ? Object.values(err.response.data.errors).join(', ')
-                : '';
-            setError(`${errorMessage}${errorDetails ? `: ${errorDetails}` : ''}`);
+    const handleNextPage = () => {
+        if (hasNext) {
+            setPage(page + 1);
         }
     };
 
-    const handleFilterChange = (e) => {
-        setFilters({ ...filters, [e.target.name]: e.target.value });
-        setPage(1);  // Сбрасываем страницу при изменении фильтров
+    const handlePrevPage = () => {
+        if (page > 1) {
+            setPage(page - 1);
+        }
     };
 
     return (
-        <div>
-            <h2>Рекомендации мероприятий</h2>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            <div>
-                <label>
-                    Навыки:
-                    <input
-                        type="text"
-                        name="required_skills"
-                        value={filters.required_skills}
-                        onChange={handleFilterChange}
-                    />
-                </label>
-                <label>
-                    Дата:
-                    <input
-                        type="date"
-                        name="date"
-                        value={filters.date}
-                        onChange={handleFilterChange}
-                    />
-                </label>
-            </div>
-            <ul>
-                {events.map(event => (
-                    <li key={event.id}>
-                        <h3>{event.title}</h3>
-                        <p>{event.description}</p>
-                        <p>Требуемые навыки: {event.required_skills}</p>
-                        <p>Дата: {event.date}</p>
-                        <button onClick={() => handleApply(event.id)}>Подать заявку</button>
-                    </li>
-                ))}
-            </ul>
-            <div>
+        <div className="container mt-5">
+            <h2 className="text-center">Рекомендации мероприятий</h2>
+            {error && <p className="text-danger text-center">{error}</p>}
+            {events.length === 0 && !error ? (
+                <p className="text-center">Нет доступных мероприятий</p>
+            ) : (
+                <div className="row">
+                    {events.map((event) => (
+                        <div key={event.id} className="col-md-4 mb-4">
+                            <div className="card">
+                                {event.image && (
+                                    <img
+                                        src={`http://127.0.0.1:8000${event.image}`}
+                                        className="card-img-top"
+                                        alt={event.title}
+                                    />
+                                )}
+                                <div className="card-body">
+                                    <h5 className="card-title">{event.title}</h5>
+                                    <p className="card-text">{event.description}</p>
+                                    <p className="card-text">
+                                        <strong>Навыки:</strong> {event.required_skills}
+                                    </p>
+                                    <p className="card-text">
+                                        <strong>Дата:</strong> {new Date(event.date).toLocaleDateString()}
+                                    </p>
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={async () => {
+                                            try {
+                                                await axios.post(
+                                                    'http://127.0.0.1:8000/api/applications/',
+                                                    { event: event.id },
+                                                    { headers: { Authorization: `Bearer ${token}` } }
+                                                );
+                                                alert('Заявка подана!');
+                                            } catch (err) {
+                                                setError('Ошибка при подаче заявки');
+                                            }
+                                        }}
+                                    >
+                                        Подать заявку
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+            <div className="d-flex justify-content-between mt-4">
                 <button
-                    disabled={!pagination.previous}
-                    onClick={() => setPage(page - 1)}
+                    className="btn btn-secondary"
+                    onClick={handlePrevPage}
+                    disabled={page === 1}
                 >
-                    Назад
+                    Предыдущая
                 </button>
-                <span> Страница {page} </span>
                 <button
-                    disabled={!pagination.next}
-                    onClick={() => setPage(page + 1)}
+                    className="btn btn-secondary"
+                    onClick={handleNextPage}
+                    disabled={!hasNext}
                 >
-                    Вперед
+                    Следующая
                 </button>
             </div>
         </div>
