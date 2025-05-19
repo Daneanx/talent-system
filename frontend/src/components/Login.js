@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+// import api from '../api'; - на будущее, для перехода на куки
 
 const Login = ({ setToken }) => {
     const [username, setUsername] = useState('');
