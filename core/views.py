@@ -98,7 +98,9 @@ class TalentProfileViewSet(viewsets.ModelViewSet):
             # Если профиль новый, сохраняем
             serializer.save(user=user)
     def get_queryset(self):
-        return TalentProfile.objects.filter(user=self.request.user)
+            if self.request.user.is_authenticated:
+                return TalentProfile.objects.filter(user=self.request.user)
+            return TalentProfile.objects.none()
 
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all().order_by('-date') # Сортировка по дате

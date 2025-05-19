@@ -20,7 +20,7 @@ class TalentProfileSerializer(serializers.ModelSerializer):
     def validate_skills(self, value):
         if not value.strip():
             raise serializers.ValidationError("Поле навыков не может быть пустым.")
-        # Проверяем, что навыки разделены запятыми и не содержат некорректных символов
+        # Проверка на наличие разделения навыков запятыми и на отсутствие некорректных символов
         skills = [skill.strip() for skill in value.split(',')]
         if not all(skill for skill in skills):
             raise serializers.ValidationError("Навыки должны быть разделены запятыми без пустых значений.")
