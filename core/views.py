@@ -99,8 +99,12 @@ class TalentProfileViewSet(viewsets.ModelViewSet):
             serializer.save(user=user)
     def get_queryset(self):
             if self.request.user.is_authenticated:
-                return TalentProfile.objects.filter(user=self.request.user)
+                return TalentProfile.objects.filter(user=self.request.user).order_by('id')
             return TalentProfile.objects.none()
+    def perform_update(self, serializer):
+        print(f"Полученные данные: {serializer.initial_data}")  # Логирование входных данных
+        print(f"Валидированные данные: {serializer.validated_data}")  # Логирование после валидации
+        serializer.save(user=self.request.user)
 
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all().order_by('-date') # Сортировка по дате

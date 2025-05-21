@@ -18,12 +18,14 @@ class TalentProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
 
     def validate_skills(self, value):
+        print(f"Проверяем навыки: {value}")  # Логирование
         if not value.strip():
             raise serializers.ValidationError("Поле навыков не может быть пустым.")
         # Проверка на наличие разделения навыков запятыми и на отсутствие некорректных символов
         skills = [skill.strip() for skill in value.split(',')]
         if not all(skill for skill in skills):
             raise serializers.ValidationError("Навыки должны быть разделены запятыми без пустых значений.")
+        print(f"Входные данные навыков (сырые): {value}")
         if not all(re.match(r'^[a-zA-Z0-9\s]+$', skill) for skill in skills):
             raise serializers.ValidationError("Навыки могут содержать только буквы, цифры и пробелы.")
         return ', '.join(skills)
