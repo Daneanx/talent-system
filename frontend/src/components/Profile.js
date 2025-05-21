@@ -5,7 +5,7 @@ const Profile = ({ token }) => {
     const [profile, setProfile] = useState(null);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(true);
-    const [isEditing, setIsEditing] = useState(false); // Состояние для режима редактирования
+    const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
         skills: '',
         preferences: '',
@@ -13,7 +13,6 @@ const Profile = ({ token }) => {
     });
 
     useEffect(() => {
-        
         const fetchProfile = async () => {
             try {
                 const response = await axios.get('http://127.0.0.1:8000/api/profiles/', {
@@ -24,7 +23,6 @@ const Profile = ({ token }) => {
                 if (response.data.results && response.data.results.length > 0) {
                     const userProfile = response.data.results[0];
                     setProfile(userProfile);
-                    // Инициализируем форму текущими данными
                     setFormData({
                         skills: userProfile.skills,
                         preferences: userProfile.preferences || '',
@@ -36,7 +34,11 @@ const Profile = ({ token }) => {
                 setIsLoading(false);
             } catch (err) {
                 console.error('Ошибка загрузки профиля:', err.response?.data || err.message);
-                setError('Не удалось загрузить профиль');
+                if (err.response?.status === 401) {
+                    setError('Срок действия токена истёк. Пожалуйста, войдите заново.');
+                } else {
+                    setError('Не удалось загрузить профиль');
+                }
                 setIsLoading(false);
             }
         };
@@ -57,16 +59,17 @@ const Profile = ({ token }) => {
         });
     };
 
-    const [successMessage, setSuccessMessage] = useState('');
-    const [isSaving, setIsSaving] = useState(false);
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setIsSaving(true);
         if (!formData.skills.trim()) {
             setError('Поле навыков не может быть пустым');
             return;
         }
+        if (!profile || !profile.id) {
+            setError('Профиль не загружен. Попробуйте обновить страницу.');
+            return;
+        }
+        console.log('Отправляемые данные (сырые):', JSON.stringify(formData)); // Логирование для отладки
         try {
             const response = await axios.put(
                 `http://127.0.0.1:8000/api/profiles/${profile.id}/`,
@@ -74,20 +77,32 @@ const Profile = ({ token }) => {
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json; charset=UTF-8',
                     },
                 }
             );
-            setProfile(response.data);
-            setIsEditing(false);
-            setError('');
+            if (response.data && response.data.user) {
+                setProfile(response.data);
+                setIsEditing(false);
+                setError('');
+            } else {
+                setError('Получены некорректные данные от сервера');
+            }
         } catch (err) {
             console.error('Детали ошибки:', err.response?.data);
-            setError(err.response?.data?.message || 'Не удалось обновить профиль');
-        } finally {
-            setIsSaving(false);
+            if (err.response?.status === 401) {
+                setError('Срок действия токена истёк. Пожалуйста, войдите заново.');
+            } else {
+                setError(err.response?.data?.message || err.response?.data?.errors?.non_field_errors?.[0] || 'Не удалось обновить профиль');
+            }
         }
     };
-    
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+    };
+
     if (isLoading) {
         return <div>Загрузка...</div>;
     }
@@ -105,11 +120,7 @@ const Profile = ({ token }) => {
             <h2 className="text-center">Профиль</h2>
             <div className="card">
                 <div className="card-body">
-                    {successMessage && (
-                        <div className="alert alert-success">{successMessage}</div>
-                    )}
                     {isEditing ? (
-                        // Форма редактирования
                         <form onSubmit={handleSubmit}>
                             <div className="mb-3">
                                 <label className="form-label">Навыки:</label>
@@ -146,8 +157,8 @@ const Profile = ({ token }) => {
                                 />
                             </div>
                             <div className="d-flex justify-content-between">
-                                <button type="submit" className="btn btn-success" disabled={isSaving}>
-                                    {isSaving ? 'Сохранение...' : 'Сохранить'}
+                                <button type="submit" className="btn btn-success">
+                                    Сохранить
                                 </button>
                                 <button
                                     type="button"
@@ -166,7 +177,6 @@ const Profile = ({ token }) => {
                             </div>
                         </form>
                     ) : (
-                        // Отображение профиля
                         <>
                             <h5 className="card-title">{profile.user.username}</h5>
                             <p><strong>Email:</strong> {profile.user.email}</p>
@@ -178,12 +188,20 @@ const Profile = ({ token }) => {
                             <p>
                                 <strong>О себе:</strong> {profile.bio || 'Не указано'}
                             </p>
-                            <button
-                                className="btn btn-primary"
-                                onClick={() => setIsEditing(true)}
-                            >
-                                Редактировать
-                            </button>
+                            <div className="d-flex justify-content-between">
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={() => setIsEditing(true)}
+                                >
+                                    Редактировать
+                                </button>
+                                <button
+                                    className="btn btn-danger"
+                                    onClick={handleLogout}
+                                >
+                                    Выйти
+                                </button>
+                            </div>
                         </>
                     )}
                 </div>
