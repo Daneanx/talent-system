@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import TalentProfile, Event, Application
+from .models import TalentProfile, OrganizerProfile, Event, Application
 from datetime import date
 import re
 
@@ -26,12 +26,12 @@ class TalentProfileSerializer(serializers.ModelSerializer):
         if not all(skill for skill in skills):
             raise serializers.ValidationError("Навыки должны быть разделены запятыми без пустых значений.")
         print(f"Входные данные навыков (сырые): {value}")
-        if not all(re.match(r'^[a-zA-Z0-9\s]+$', skill) for skill in skills):
+        if not all(re.match(r'^[a-zA-Zа-яА-ЯёЁ0-9\s]+$', skill) for skill in skills):
             raise serializers.ValidationError("Навыки могут содержать только буквы, цифры и пробелы.")
         return ', '.join(skills)
 
     def validate_preferences(self, value):
-        if value and not re.match(r'^[a-zA-Z0-9\s,]+$', value):
+        if value and not re.match(r'^[a-zA-Zа-яА-ЯёЁ0-9\s,]+$', value):
             raise serializers.ValidationError("Предпочтения могут содержать только буквы, цифры, пробелы и запятые.")
         return value
 
@@ -47,9 +47,32 @@ class TalentProfileSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+class OrganizerProfileSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
+    events_count = serializers.SerializerMethodField()
+
+    def get_events_count(self, obj):
+        return obj.user.events.count()
+
+    class Meta:
+        model = OrganizerProfile
+        fields = ['id', 'user', 'organization_name', 'description', 'contact_info', 
+                 'website', 'verified', 'events_count']
+        read_only_fields = ['verified']
+
 class EventSerializer(serializers.ModelSerializer):
     organizer = UserSerializer(read_only=True)
-    date = serializers.DateField()
+    applications_count = serializers.SerializerMethodField()
+    organization_name = serializers.SerializerMethodField()
+
+    def get_applications_count(self, obj):
+        return obj.application_set.count()
+
+    def get_organization_name(self, obj):
+        try:
+            return obj.organizer.organizerprofile.organization_name
+        except OrganizerProfile.DoesNotExist:
+            return None
 
     def validate_required_skills(self, value):
         if not value.strip():
@@ -57,7 +80,7 @@ class EventSerializer(serializers.ModelSerializer):
         skills = [skill.strip() for skill in value.split(',')]
         if not all(skill for skill in skills):
             raise serializers.ValidationError("Навыки должны быть разделены запятыми без пустых значений.")
-        if not all(re.match(r'^[a-zA-Z0-9\s]+$', skill) for skill in skills):
+        if not all(re.match(r'^[a-zA-Zа-яА-ЯёЁ0-9\s]+$', skill) for skill in skills):
             raise serializers.ValidationError("Навыки могут содержать только буквы, цифры и пробелы.")
         return ', '.join(skills)
 
@@ -68,11 +91,24 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ['id', 'organizer', 'title', 'description', 'required_skills', 'date', 'image']
-        read_only_fields = ['id', 'organizer']
+        fields = ['id', 'organizer', 'organization_name', 'title', 'description', 
+                 'required_skills', 'date', 'image', 'location', 'status', 
+                 'created_at', 'updated_at', 'applications_count']
+        read_only_fields = ['id', 'organizer', 'created_at', 'updated_at']
 
 class ApplicationSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    event = EventSerializer(read_only=True)
+    talent_profile = serializers.SerializerMethodField()
+
+    def get_talent_profile(self, obj):
+        try:
+            return TalentProfileSerializer(obj.user.talentprofile).data
+        except TalentProfile.DoesNotExist:
+            return None
+
     class Meta:
         model = Application
-        fields = ['id', 'user', 'event', 'status', 'created_at']
+        fields = ['id', 'user', 'event', 'status', 'created_at', 
+                 'message', 'organizer_comment', 'talent_profile']
         read_only_fields = ['user', 'created_at']
