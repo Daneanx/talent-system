@@ -5,9 +5,51 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f5f5;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Импорт Font Awesome для иконок */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css');
+
+/* Базовые стили для сетки в стиле Pinterest */
+.masonry-grid {
+  column-count: 3;
+  column-gap: 20px;
+  padding: 20px;
+}
+
+@media (max-width: 991px) {
+  .masonry-grid {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 767px) {
+  .masonry-grid {
+    column-count: 1;
+  }
+}
+
+/* Animate.css-подобные анимации */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }

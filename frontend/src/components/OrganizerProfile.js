@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
-import './Profile.css';
+import './OrganizerProfile.css';
 
-const Profile = () => {
+const OrganizerProfile = () => {
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [formData, setFormData] = useState({
-        skills: '',
-        preferences: '',
-        bio: ''
+        organization_name: '',
+        description: '',
+        contact_info: '',
+        website: ''
     });
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -22,19 +23,19 @@ const Profile = () => {
 
     const fetchProfile = async () => {
         try {
-            // Добавляем проверку наличия токена
+            // Проверяем наличие токена
             const token = localStorage.getItem('token');
             if (!token) {
                 setError('Токен отсутствует, пожалуйста, войдите в систему');
                 setLoading(false);
                 return;
             }
-            
-            const response = await api.get('api/profiles/');
+
+            const response = await api.get('api/organizer/profiles/');
             
             // Данные могут прийти как массив или как объект с полем results
             let profileData;
-            if (Array.isArray(response.data)) {
+            if (Array.isArray(response.data) && response.data.length > 0) {
                 profileData = response.data[0];
             } else if (response.data.results && response.data.results.length > 0) {
                 profileData = response.data.results[0];
@@ -44,15 +45,16 @@ const Profile = () => {
             
             setProfile(profileData);
             setFormData({
-                skills: profileData.skills || '',
-                preferences: profileData.preferences || '',
-                bio: profileData.bio || ''
+                organization_name: profileData.organization_name || '',
+                description: profileData.description || '',
+                contact_info: profileData.contact_info || '',
+                website: profileData.website || ''
             });
             setLoading(false);
         } catch (err) {
-            console.error('Ошибка загрузки профиля:', err);
+            console.error('Ошибка загрузки профиля организатора:', err);
             
-            // Проверяем, является ли ошибка 401 (неавторизован)
+            // Проверяем ошибку авторизации
             if (err.response && err.response.status === 401) {
                 setError('Токен отсутствует или недействителен, пожалуйста, войдите в систему');
                 // Перенаправляем на страницу входа
@@ -84,18 +86,18 @@ const Profile = () => {
         
         try {
             if (profile && profile.id) {
-                await api.put(`api/profiles/${profile.id}/`, formData);
+                await api.put(`api/organizer/profiles/${profile.id}/`, formData);
                 setSaveSuccess(true);
                 setIsEditing(false);
                 
                 // Обновляем данные профиля
                 fetchProfile();
             } else {
-                setError('Не удалось определить ID профиля');
+                setError('Не удалось определить ID профиля организатора');
             }
         } catch (err) {
             console.error('Ошибка обновления профиля:', err);
-            setError('Ошибка при сохранении профиля');
+            setError('Ошибка при сохранении профиля организатора');
         }
     };
 
@@ -109,7 +111,7 @@ const Profile = () => {
                     <div className="card profile-card">
                         <div className="card-body">
                             <div className="d-flex justify-content-between align-items-center mb-4">
-                                <h2 className="card-title">Профиль таланта</h2>
+                                <h2 className="card-title">Профиль организатора</h2>
                                 {!isEditing && (
                                     <button 
                                         className="btn btn-primary" 
@@ -129,34 +131,45 @@ const Profile = () => {
                             {isEditing ? (
                                 <form onSubmit={handleSubmit}>
                                     <div className="mb-3">
-                                        <label className="form-label">Навыки:</label>
+                                        <label className="form-label">Название организации:</label>
                                         <input
                                             type="text"
                                             className="form-control"
-                                            name="skills"
-                                            value={formData.skills}
+                                            name="organization_name"
+                                            value={formData.organization_name}
                                             onChange={handleChange}
-                                            placeholder="Например: танцы, пение, актерское мастерство"
                                             required
                                         />
                                     </div>
                                     <div className="mb-3">
-                                        <label className="form-label">Предпочтения:</label>
+                                        <label className="form-label">Контактная информация:</label>
                                         <input
                                             type="text"
                                             className="form-control"
-                                            name="preferences"
-                                            value={formData.preferences}
+                                            name="contact_info"
+                                            value={formData.contact_info}
                                             onChange={handleChange}
-                                            placeholder="Например: концерты, фестивали"
+                                            placeholder="Телефон, email для связи"
+                                            required
                                         />
                                     </div>
                                     <div className="mb-3">
-                                        <label className="form-label">О себе:</label>
+                                        <label className="form-label">Веб-сайт:</label>
+                                        <input
+                                            type="url"
+                                            className="form-control"
+                                            name="website"
+                                            value={formData.website}
+                                            onChange={handleChange}
+                                            placeholder="https://example.com"
+                                        />
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="form-label">Описание организации:</label>
                                         <textarea
                                             className="form-control"
-                                            name="bio"
-                                            value={formData.bio}
+                                            name="description"
+                                            value={formData.description}
                                             onChange={handleChange}
                                             rows="5"
                                         />
@@ -176,36 +189,34 @@ const Profile = () => {
                                 </form>
                             ) : (
                                 <div>
-                                    <div className="mb-4">
-                                        <h5>Навыки:</h5>
-                                        <div className="skills-container">
-                                            {formData.skills.split(',').map((skill, index) => (
-                                                <span key={index} className="skill-badge">
-                                                    {skill.trim()}
-                                                </span>
-                                            ))}
-                                        </div>
+                                    <div className="info-item">
+                                        <h5>Название организации:</h5>
+                                        <p>{formData.organization_name}</p>
                                     </div>
                                     
-                                    <div className="mb-4">
-                                        <h5>Предпочтения:</h5>
-                                        <div className="skills-container">
-                                            {formData.preferences
-                                                ? formData.preferences.split(',').map((pref, index) => (
-                                                    <span key={index} className="preference-badge">
-                                                        {pref.trim()}
-                                                    </span>
-                                                ))
-                                                : <p className="text-muted">Не указаны</p>
-                                            }
-                                        </div>
+                                    <div className="info-item">
+                                        <h5>Контактная информация:</h5>
+                                        <p>{formData.contact_info || <span className="text-muted">Не указана</span>}</p>
                                     </div>
                                     
-                                    <div>
-                                        <h5>О себе:</h5>
-                                        <p className="bio-text">
-                                            {formData.bio || <span className="text-muted">Не указано</span>}
+                                    <div className="info-item">
+                                        <h5>Веб-сайт:</h5>
+                                        <p>
+                                            {formData.website ? (
+                                                <a href={formData.website} target="_blank" rel="noopener noreferrer">
+                                                    {formData.website}
+                                                </a>
+                                            ) : (
+                                                <span className="text-muted">Не указан</span>
+                                            )}
                                         </p>
+                                    </div>
+                                    
+                                    <div className="info-item">
+                                        <h5>Описание организации:</h5>
+                                        <div className="description-box">
+                                            {formData.description || <span className="text-muted">Не указано</span>}
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -217,4 +228,4 @@ const Profile = () => {
     );
 };
 
-export default Profile;
+export default OrganizerProfile; 

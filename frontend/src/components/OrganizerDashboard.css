@@ -1,0 +1,217 @@
+.organizer-dashboard {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.dashboard-header h2 {
+  margin: 0;
+  margin-right: 20px;
+  font-weight: 600;
+}
+
+.dashboard-header h4 {
+  margin: 0;
+  color: #666;
+  flex-grow: 1;
+}
+
+.create-event-button {
+  background-color: #e05748;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 20px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.create-event-button:hover {
+  background-color: #c04738;
+}
+
+.tabs-container {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 20px;
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  margin-right: 10px;
+  font-size: 1rem;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  font-weight: 500;
+}
+
+.tab-button.active {
+  color: #e05748;
+}
+
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: #e05748;
+}
+
+.filter-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.search-input {
+  border-radius: 20px;
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  min-width: 300px;
+}
+
+.status-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-select {
+  border-radius: 20px;
+  padding: 8px 15px;
+  border: 1px solid #ddd;
+}
+
+.no-events, .no-applications {
+  text-align: center;
+  padding: 40px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.create-new-btn {
+  background-color: #e05748;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  margin-top: 15px;
+  cursor: pointer;
+}
+
+/* Стили для карточек заявок */
+.applications-container {
+  padding: 10px;
+}
+
+.applications-container h3 {
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.applications-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.application-card {
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.application-card:hover {
+  transform: translateY(-5px);
+}
+
+.application-header {
+  padding: 15px;
+  background-color: #f8f8f8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.application-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.application-status {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: white;
+}
+
+.status-pending {
+  background-color: #3498db;
+}
+
+.status-approved {
+  background-color: #2ecc71;
+}
+
+.status-rejected {
+  background-color: #e74c3c;
+}
+
+.application-content {
+  padding: 15px;
+}
+
+.applicant-info, .application-message {
+  margin-bottom: 15px;
+}
+
+.applicant-info p, .application-message p {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.application-actions {
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid #eee;
+}
+
+.view-profile-btn {
+  background: none;
+  border: 1px solid #3498db;
+  color: #3498db;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.view-profile-btn:hover {
+  background-color: #3498db;
+  color: white;
+} 
