@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 
-const Register = () => {
+const Register = ({ setToken, setUserType }) => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         username: '',
@@ -11,9 +11,27 @@ const Register = () => {
         confirmPassword: '',
         skills: '',
         preferences: '',
-        bio: ''
+        bio: '',
+        faculty_id: '',
+        education_level: '',
+        course: ''
     });
+    const [faculties, setFaculties] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        fetchFaculties();
+    }, []);
+
+    const fetchFaculties = async () => {
+        try {
+            const response = await api.get('api/faculties/');
+            setFaculties(response.data);
+        } catch (err) {
+            console.error('Ошибка загрузки факультетов:', err);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -26,60 +44,62 @@ const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
 
-        // Проверка совпадения паролей
         if (formData.password !== formData.confirmPassword) {
             setError('Пароли не совпадают');
+            setLoading(false);
             return;
         }
 
         try {
-            console.log('Sending user data:', {
+            const response = await api.post('api/register/', {
                 username: formData.username,
                 email: formData.email,
                 password: formData.password,
-                confirmPassword: formData.confirmPassword
+                skills: formData.skills,
+                preferences: formData.preferences,
+                bio: formData.bio,
+                faculty_id: formData.faculty_id,
+                education_level: formData.education_level,
+                course: formData.course
             });
+
+            setToken(response.data.token);
+            setUserType(response.data.userType);
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('userType', response.data.userType);
+            api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
             
-            const userResponse = await api.post('api/register/', {
-                username: formData.username,
-                email: formData.email,
-                password: formData.password
+            await api.post('api/profiles/', {
+                skills: formData.skills,
+                preferences: formData.preferences,
+                bio: formData.bio
             });
-            
-            console.log('User response:', userResponse.data);
-            
-            if (userResponse.data.token) {
-                // Сохраняем токен для аутентификации
-                localStorage.setItem('token', userResponse.data.token);
-                localStorage.setItem('userType', 'talent');
-                // Устанавливаем токен для будущих запросов
-                api.defaults.headers.common['Authorization'] = `Bearer ${userResponse.data.token}`;
-                
-                // Обновляем профиль таланта с дополнительными данными
-                await api.post('api/profiles/', {
-                    skills: formData.skills,
-                    preferences: formData.preferences,
-                    bio: formData.bio
-                });
-                
-                navigate('/profile');
-            } else {
-                setError('Не удалось создать пользователя');
-            }
+
+            navigate('/profile');
         } catch (err) {
-            setError(err.response?.data?.message || 'Произошла ошибка при регистрации');
+            console.error('Ошибка регистрации:', err);
+            setError(err.response?.data?.detail || 'Ошибка при регистрации');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <div className="container mt-5">
             <div className="row justify-content-center">
-                <div className="col-md-6">
+                <div className="col-md-8">
                     <div className="card">
                         <div className="card-body">
-                            <h2 className="text-center mb-4">Регистрация таланта</h2>
-                            {error && <div className="alert alert-danger">{error}</div>}
+                            <h2 className="card-title text-center mb-4">Регистрация таланта</h2>
+                            
+                            {error && (
+                                <div className="alert alert-danger">
+                                    {error}
+                                </div>
+                            )}
+                            
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-3">
                                     <label className="form-label">Имя пользователя:</label>
@@ -92,6 +112,7 @@ const Register = () => {
                                         required
                                     />
                                 </div>
+                                
                                 <div className="mb-3">
                                     <label className="form-label">Email:</label>
                                     <input
@@ -103,6 +124,7 @@ const Register = () => {
                                         required
                                     />
                                 </div>
+                                
                                 <div className="mb-3">
                                     <label className="form-label">Пароль:</label>
                                     <input
@@ -114,8 +136,9 @@ const Register = () => {
                                         required
                                     />
                                 </div>
+                                
                                 <div className="mb-3">
-                                    <label className="form-label">Подтверждение пароля:</label>
+                                    <label className="form-label">Подтвердите пароль:</label>
                                     <input
                                         type="password"
                                         className="form-control"
@@ -125,18 +148,65 @@ const Register = () => {
                                         required
                                     />
                                 </div>
+
                                 <div className="mb-3">
-                                    <label className="form-label">Навыки (через запятую):</label>
+                                    <label className="form-label">Факультет:</label>
+                                    <select
+                                        className="form-control"
+                                        name="faculty_id"
+                                        value={formData.faculty_id}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="">Выберите факультет</option>
+                                        {faculties.map(faculty => (
+                                            <option key={faculty.id} value={faculty.id}>
+                                                {faculty.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="form-label">Уровень образования:</label>
+                                    <select
+                                        className="form-control"
+                                        name="education_level"
+                                        value={formData.education_level}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="">Выберите уровень образования</option>
+                                        <option value="bachelor">Бакалавриат</option>
+                                        <option value="master">Магистратура</option>
+                                        <option value="specialist">Специалитет</option>
+                                    </select>
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="form-label">Курс:</label>
+                                    <input
+                                        type="number"
+                                        className="form-control"
+                                        name="course"
+                                        value={formData.course}
+                                        onChange={handleChange}
+                                        min="1"
+                                        max="6"
+                                    />
+                                </div>
+                                
+                                <div className="mb-3">
+                                    <label className="form-label">Навыки:</label>
                                     <input
                                         type="text"
                                         className="form-control"
                                         name="skills"
                                         value={formData.skills}
                                         onChange={handleChange}
-                                        placeholder="Например: танцы, пение, актерское мастерство"
-                                        required
+                                        placeholder="Например: танцы, пение, рисование"
                                     />
                                 </div>
+                                
                                 <div className="mb-3">
                                     <label className="form-label">Предпочтения:</label>
                                     <input
@@ -148,6 +218,7 @@ const Register = () => {
                                         placeholder="Например: концерты, фестивали"
                                     />
                                 </div>
+                                
                                 <div className="mb-3">
                                     <label className="form-label">О себе:</label>
                                     <textarea
@@ -156,13 +227,16 @@ const Register = () => {
                                         value={formData.bio}
                                         onChange={handleChange}
                                         rows="3"
-                                    />
+                                    ></textarea>
                                 </div>
-                                <div className="d-grid">
-                                    <button type="submit" className="btn btn-primary">
-                                        Зарегистрироваться
-                                    </button>
-                                </div>
+                                
+                                <button 
+                                    type="submit" 
+                                    className="btn btn-primary w-100"
+                                    disabled={loading}
+                                >
+                                    {loading ? 'Регистрация...' : 'Зарегистрироваться'}
+                                </button>
                             </form>
                         </div>
                     </div>

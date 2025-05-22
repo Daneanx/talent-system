@@ -14,6 +14,7 @@ const OrganizerDashboard = () => {
     const [organizerProfile, setOrganizerProfile] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [comments, setComments] = useState({});
 
     useEffect(() => {
         fetchData();
@@ -75,7 +76,8 @@ const OrganizerDashboard = () => {
     const handleStatusChange = async (applicationId, newStatus) => {
         try {
             await api.patch(`api/applications/${applicationId}/`, {
-                status: newStatus
+                status: newStatus,
+                organizer_comment: comments[applicationId] || ''
             });
             // Обновляем список заявок
             fetchData();
@@ -119,6 +121,14 @@ const OrganizerDashboard = () => {
         }
         
         return filtered;
+    };
+
+    // Обработчик изменений в полях комментариев
+    const handleCommentChange = (applicationId, value) => {
+        setComments(prevComments => ({
+            ...prevComments,
+            [applicationId]: value
+        }));
     };
 
     if (loading) return <div className="text-center mt-5">Загрузка...</div>;
@@ -224,23 +234,45 @@ const OrganizerDashboard = () => {
                                             <p><strong>Сообщение:</strong></p>
                                             <p>{application.message || 'Сообщение отсутствует'}</p>
                                         </div>
+                                        
+                                        <div className="organizer-comment mt-3">
+                                            <p><strong>Ваш комментарий:</strong></p>
+                                            <textarea 
+                                                className="form-control"
+                                                placeholder="Оставьте комментарий для таланта..."
+                                                value={comments[application.id] || application.organizer_comment || ''}
+                                                onChange={(e) => handleCommentChange(application.id, e.target.value)}
+                                                rows="3"
+                                            ></textarea>
+                                        </div>
                                     </div>
                                     <div className="application-actions">
-                                        <select 
-                                            value={application.status}
-                                            onChange={(e) => handleStatusChange(application.id, e.target.value)}
-                                            className="status-select"
-                                        >
-                                            <option value="pending">На рассмотрении</option>
-                                            <option value="approved">Одобрено</option>
-                                            <option value="rejected">Отклонено</option>
-                                        </select>
-                                        <button 
-                                            className="view-profile-btn"
-                                            onClick={() => navigate(`/talents/${application.user.id}`)}
-                                        >
-                                            Профиль таланта
-                                        </button>
+                                        <div className="status-section">
+                                            <label className="status-label">Решение:</label>
+                                            <select 
+                                                value={application.status}
+                                                onChange={(e) => handleStatusChange(application.id, e.target.value)}
+                                                className="status-select"
+                                            >
+                                                <option value="pending">На рассмотрении</option>
+                                                <option value="approved">Одобрено</option>
+                                                <option value="rejected">Отклонено</option>
+                                            </select>
+                                        </div>
+                                        <div className="action-buttons">
+                                            <button 
+                                                className="save-decision-btn"
+                                                onClick={() => handleStatusChange(application.id, application.status)}
+                                            >
+                                                Сохранить решение
+                                            </button>
+                                            <button 
+                                                className="view-profile-btn"
+                                                onClick={() => navigate(`/talents/${application.user.id}`)}
+                                            >
+                                                Профиль таланта
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ))}

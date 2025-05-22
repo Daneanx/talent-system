@@ -1,0 +1,79 @@
+.application-card {
+    transition: transform 0.2s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    border: none;
+}
+
+.application-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.badge {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: 12px;
+}
+
+.status-pending {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.status-approved {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-rejected {
+    background-color: #dc3545;
+    color: white;
+}
+
+.card-header {
+    background-color: rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    padding: 1rem;
+}
+
+.card-body {
+    padding: 1.25rem;
+}
+
+.card-footer {
+    background-color: rgba(0, 0, 0, 0.03);
+    border-top: 1px solid rgba(0, 0, 0, 0.125);
+    padding: 1rem;
+}
+
+.btn-outline-primary {
+    width: 100%;
+}
+
+@media (max-width: 767px) {
+    .col-md-6.col-lg-4 {
+        margin-bottom: 1.5rem;
+    }
+}
+
+.organizer-comment {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 15px;
+    border-left: 4px solid #3498db;
+}
+
+.organizer-comment h6 {
+    color: #2c3e50;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.organizer-comment p {
+    margin-bottom: 0;
+    color: #34495e;
+    font-size: 0.95rem;
+    line-height: 1.5;
+} 

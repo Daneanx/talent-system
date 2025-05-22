@@ -195,9 +195,59 @@
 .application-actions {
   padding: 15px;
   display: flex;
-  justify-content: space-between;
-  gap: 10px;
+  flex-direction: column;
+  gap: 15px;
   border-top: 1px solid #eee;
+}
+
+.status-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-label {
+  font-weight: 500;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.save-decision-btn {
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+  position: relative;
+  top: 0;
+  box-shadow: 0 4px 6px rgba(46, 204, 113, 0.2);
+}
+
+.save-decision-btn:hover {
+  background-color: #27ae60;
+  box-shadow: 0 6px 8px rgba(46, 204, 113, 0.3);
+  transform: translateY(-1px);
+}
+
+.save-decision-btn:active {
+  background-color: #219a52;
+  box-shadow: 0 2px 4px rgba(46, 204, 113, 0.2);
+  transform: translateY(1px);
+  transition: all 0.1s ease;
+}
+
+.save-decision-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.3);
 }
 
 .view-profile-btn {
@@ -205,13 +255,44 @@
   border: 1px solid #3498db;
   color: #3498db;
   border-radius: 20px;
-  padding: 6px 12px;
+  padding: 8px 16px;
   font-size: 0.9rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  flex: 1;
 }
 
 .view-profile-btn:hover {
   background-color: #3498db;
   color: white;
+}
+
+.status-select {
+  flex: 1;
+  border-radius: 20px;
+  padding: 8px 15px;
+  border: 1px solid #ddd;
+  background-color: white;
+  color: #2c3e50;
+  font-size: 0.9rem;
+}
+
+.status-select:focus {
+  border-color: #3498db;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.organizer-comment textarea {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  transition: border-color 0.3s;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.organizer-comment textarea:focus {
+  border-color: #4e73df;
+  box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+  outline: none;
 } 

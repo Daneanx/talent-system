@@ -20,8 +20,8 @@ const Profile = () => {
         fetchProfile();
     }, []);
 
-    const fetchProfile = async () => {
-        try {
+        const fetchProfile = async () => {
+            try {
             // Добавляем проверку наличия токена
             const token = localStorage.getItem('token');
             if (!token) {
@@ -43,13 +43,13 @@ const Profile = () => {
             }
             
             setProfile(profileData);
-            setFormData({
+                    setFormData({
                 skills: profileData.skills || '',
                 preferences: profileData.preferences || '',
                 bio: profileData.bio || ''
-            });
+                    });
             setLoading(false);
-        } catch (err) {
+            } catch (err) {
             console.error('Ошибка загрузки профиля:', err);
             
             // Проверяем, является ли ошибка 401 (неавторизован)
@@ -61,7 +61,7 @@ const Profile = () => {
                 setTimeout(() => {
                     navigate('/');
                 }, 3000);
-            } else {
+                } else {
                 setError('Ошибка загрузки профиля. Пожалуйста, попробуйте позже.');
             }
             
@@ -107,7 +107,7 @@ const Profile = () => {
             <div className="row justify-content-center">
                 <div className="col-md-8">
                     <div className="card profile-card">
-                        <div className="card-body">
+                <div className="card-body">
                             <div className="d-flex justify-content-between align-items-center mb-4">
                                 <h2 className="card-title">Профиль таланта</h2>
                                 {!isEditing && (
@@ -126,55 +126,55 @@ const Profile = () => {
                                 </div>
                             )}
                             
-                            {isEditing ? (
-                                <form onSubmit={handleSubmit}>
-                                    <div className="mb-3">
-                                        <label className="form-label">Навыки:</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="skills"
-                                            value={formData.skills}
+                    {isEditing ? (
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-3">
+                                <label className="form-label">Навыки:</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    name="skills"
+                                    value={formData.skills}
                                             onChange={handleChange}
                                             placeholder="Например: танцы, пение, актерское мастерство"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label className="form-label">Предпочтения:</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="preferences"
-                                            value={formData.preferences}
+                                    required
+                                />
+                            </div>
+                            <div className="mb-3">
+                                <label className="form-label">Предпочтения:</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    name="preferences"
+                                    value={formData.preferences}
                                             onChange={handleChange}
                                             placeholder="Например: концерты, фестивали"
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label className="form-label">О себе:</label>
-                                        <textarea
-                                            className="form-control"
-                                            name="bio"
-                                            value={formData.bio}
+                                />
+                            </div>
+                            <div className="mb-3">
+                                <label className="form-label">О себе:</label>
+                                <textarea
+                                    className="form-control"
+                                    name="bio"
+                                    value={formData.bio}
                                             onChange={handleChange}
                                             rows="5"
-                                        />
-                                    </div>
+                                />
+                            </div>
                                     <div className="d-flex gap-2">
-                                        <button type="submit" className="btn btn-success">
-                                            Сохранить
-                                        </button>
-                                        <button 
-                                            type="button" 
-                                            className="btn btn-secondary"
+                                <button type="submit" className="btn btn-success">
+                                    Сохранить
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
                                             onClick={() => setIsEditing(false)}
-                                        >
-                                            Отмена
-                                        </button>
-                                    </div>
-                                </form>
-                            ) : (
+                                >
+                                    Отмена
+                                </button>
+                            </div>
+                        </form>
+                    ) : (
                                 <div>
                                     <div className="mb-4">
                                         <h5>Навыки:</h5>
@@ -207,8 +207,8 @@ const Profile = () => {
                                             {formData.bio || <span className="text-muted">Не указано</span>}
                                         </p>
                                     </div>
-                                </div>
-                            )}
+                            </div>
+                    )}
                         </div>
                     </div>
                 </div>

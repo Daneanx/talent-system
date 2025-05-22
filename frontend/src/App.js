@@ -9,6 +9,8 @@ import OrganizerDashboard from './components/OrganizerDashboard';
 import EventForm from './components/EventForm';
 import EventDetail from './components/EventDetail';
 import Recommendations from './components/Recommendations';
+import ApplicationsList from './components/ApplicationsList';
+import TalentProfileView from './components/TalentProfileView';
 import api from './api';
 
 const App = () => {
@@ -126,6 +128,7 @@ const App = () => {
                                         <>
                                             <Link className="nav-link" to="/profile">Профиль</Link>
                                             <Link className="nav-link" to="/recommendations">Рекомендации</Link>
+                                            <Link className="nav-link" to="/applications">Мои заявки</Link>
                                         </>
                                     )}
                                     <button className="btn btn-outline-danger ms-2" onClick={handleLogout}>
@@ -151,6 +154,10 @@ const App = () => {
                         element={token && userType !== 'organizer' ? <Recommendations /> : <Login setToken={setToken} setUserType={setUserType} />}
                     />
                     <Route
+                        path="/applications"
+                        element={token && userType !== 'organizer' ? <ApplicationsList /> : <Login setToken={setToken} setUserType={setUserType} />}
+                    />
+                    <Route
                         path="/organizer/dashboard"
                         element={token && userType === 'organizer' ? <OrganizerDashboard /> : <Login setToken={setToken} setUserType={setUserType} />}
                     />
@@ -169,6 +176,10 @@ const App = () => {
                     <Route
                         path="/events/:id"
                         element={token ? <EventDetail /> : <Login setToken={setToken} setUserType={setUserType} />}
+                    />
+                    <Route
+                        path="/talents/:id"
+                        element={token ? <TalentProfileView /> : <Login setToken={setToken} setUserType={setUserType} />}
                     />
                 </Routes>
             </div>
