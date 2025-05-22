@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import TalentProfile, OrganizerProfile, Event, Application
+from .models import TalentProfile, OrganizerProfile, Event, Application, Faculty
 from datetime import date
 import re
 
@@ -14,8 +14,21 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
+class FacultySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Faculty
+        fields = ['id', 'name', 'short_name', 'description']
+
 class TalentProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
+    faculty = FacultySerializer(read_only=True)
+    faculty_id = serializers.PrimaryKeyRelatedField(
+        queryset=Faculty.objects.all(),
+        source='faculty',
+        write_only=True,
+        required=True
+    )
+    education_level_display = serializers.CharField(source='get_education_level_display', read_only=True)
 
     def validate_skills(self, value):
         print(f"Проверяем навыки: {value}")  # Логирование
@@ -37,7 +50,11 @@ class TalentProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TalentProfile
-        fields = ['id', 'user', 'skills', 'preferences', 'bio']
+        fields = [
+            'id', 'skills', 'preferences', 'bio', 
+            'faculty', 'faculty_id', 'education_level',
+            'education_level_display', 'course'
+        ]
         read_only_fields = ['user']
 
     def update(self, instance, validated_data):

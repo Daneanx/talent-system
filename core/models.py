@@ -1,15 +1,46 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-# TalentProfile хранит навыки и предпочтения таланта.
-class TalentProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    skills = models.CharField(max_length=200)  # Например, "танцы, пение"
-    preferences = models.CharField(max_length=200)  # Например, "концерты, фестивали"
-    bio = models.TextField(blank=True)
+
+class Faculty(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Название факультета")
+    short_name = models.CharField(max_length=50, verbose_name="Короткое название")
+    description = models.TextField(blank=True, null=True, verbose_name="Описание")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Факультет"
+        verbose_name_plural = "Факультеты"
+        ordering = ['name']
 
     def __str__(self):
-        return f"{self.user.username}'s profile"
+        return self.name
+
+# TalentProfile хранит навыки и предпочтения таланта.
+class TalentProfile(models.Model):
+    EDUCATION_LEVELS = [
+        ('bachelor', 'Бакалавриат'),
+        ('master', 'Магистратура'),
+        ('specialist', 'Специалитет'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='talent_profile')
+    skills = models.TextField(blank=True, null=True)
+    preferences = models.TextField(blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
+    faculty = models.ForeignKey(Faculty, on_delete=models.SET_NULL, null=True, verbose_name="Факультет")
+    education_level = models.CharField(max_length=20, choices=EDUCATION_LEVELS, blank=True, null=True, verbose_name="Уровень образования")
+    course = models.PositiveSmallIntegerField(blank=True, null=True, verbose_name="Курс")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Профиль таланта"
+        verbose_name_plural = "Профили талантов"
+
+    def __str__(self):
+        return f"Профиль {self.user.username}"
 
 # OrganizerProfile хранит информацию об организаторе
 class OrganizerProfile(models.Model):
@@ -33,15 +64,21 @@ class Event(models.Model):
     ]
 
     organizer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='events')
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=200)
     description = models.TextField()
-    date = models.DateField()
-    required_skills = models.CharField(max_length=200)  # Например, "танцы, вокал"
-    image = models.ImageField(upload_to='events/', blank=True, null=True)
+    date = models.DateTimeField()
+    required_skills = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='event_images/', null=True, blank=True)
     location = models.CharField(max_length=200)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    faculty = models.ForeignKey(Faculty, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Факультет")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Мероприятие"
+        verbose_name_plural = "Мероприятия"
+        ordering = ['-date']
 
     def __str__(self):
         return self.title
@@ -63,16 +100,3 @@ class Application(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.event.title}"
-
-#class Application(models.Model):
-#    talent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications')
-#    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='applications')
-#    status = models.CharField(max_length=20, choices=[
-#        ('pending', 'Pending'),
-#        ('approved', 'Approved'),
-#        ('rejected', 'Rejected'),
-#    ], default='pending')
-#    created_at = models.DateTimeField(auto_now_add=True)
-#
-#    def __str__(self):
-#        return f"{self.talent.username} -> {self.event.title}"
