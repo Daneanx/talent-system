@@ -21,6 +21,7 @@ from rest_framework import serializers
 def register_user(request):
     try:
         print(f"Регистрация пользователя, данные: {request.data}")
+        # Передаем все данные, включая first_name и last_name, в сериализатор
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
@@ -145,16 +146,65 @@ def login(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_application(request):
-    serializer = ApplicationSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save(user=request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    print(f"Создание заявки, данные: {request.data}")
+    
+    # Проверяем наличие event_id в данных
+    event_id = request.data.get('event_id')
+    if not event_id:
+        return Response({"detail": "Отсутствует ID мероприятия (event_id)"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Получаем объект мероприятия по ID
+        event = Event.objects.get(id=event_id)
+
+        # Получаем профиль текущего пользователя (таланта)
+        try:
+            talent_profile = request.user.talent_profile
+            user_faculty = talent_profile.faculty
+        except TalentProfile.DoesNotExist:
+             # Если у пользователя нет профиля таланта, он не может подать заявку как талант
+             return Response({"detail": "У вас нет профиля таланта для подачи заявки"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Проверка ограничения по факультетам
+        if event.faculty_restriction:
+            if user_faculty is None or user_faculty not in event.faculties.all():
+                 return Response(
+                     {"detail": "Это мероприятие ограничено по факультетам, и ваш факультет не соответствует."},
+                     status=status.HTTP_403_FORBIDDEN
+                 )
+
+        # Проверка на дубликаты заявок
+        existing_application = Application.objects.filter(
+            user=request.user,
+            event=event
+        ).exists()
+        
+        if existing_application:
+            return Response({"detail": "Вы уже подали заявку на это мероприятие"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Создаем сериализатор для валидации и сохранения
+        serializer = ApplicationSerializer(data=request.data)
+        if serializer.is_valid():
+            # Сохраняем заявку с текущим пользователем и найденным мероприятием
+            serializer.save(
+                user=request.user, 
+                event=event
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    except Event.DoesNotExist:
+        return Response({"detail": f"Мероприятие с ID {event_id} не найдено"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(f"Ошибка при создании заявки: {str(e)}")
+        return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TalentProfileViewSet(viewsets.ModelViewSet):
     queryset = TalentProfile.objects.all()
     serializer_class = TalentProfileSerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def perform_create(self, serializer):
         try:
@@ -193,9 +243,24 @@ class TalentProfileViewSet(viewsets.ModelViewSet):
             return TalentProfile.objects.none()
         
     def perform_update(self, serializer):
-        print(f"Полученные данные: {serializer.initial_data}")  # Логирование входных данных
-        print(f"Валидированные данные: {serializer.validated_data}")  # Логирование после валидации
-        serializer.save(user=self.request.user)
+        print(f"TalentProfileViewSet perform_update: Request data -> {self.request.data}")
+        print(f"TalentProfileViewSet perform_update: Validated data -> {serializer.validated_data}")
+        
+        # Проверяем наличие файла в запросе
+        if 'avatar' in self.request.FILES:
+            print(f"Получен новый файл аватара: {self.request.FILES['avatar']}")
+            # Проверяем размер файла (5MB)
+            if self.request.FILES['avatar'].size > 5 * 1024 * 1024:
+                raise serializers.ValidationError("Размер файла не должен превышать 5MB")
+            # Проверяем тип файла
+            if not self.request.FILES['avatar'].content_type.startswith('image/'):
+                raise serializers.ValidationError("Файл должен быть изображением")
+        
+        # Сохраняем изменения
+        instance = serializer.save()
+        
+        print(f"TalentProfileViewSet perform_update: Profile after save -> {instance.avatar.name if instance.avatar else 'No avatar'}")
+        return instance
 
     @action(detail=False, methods=['get'], url_path='talent/(?P<user_id>[^/.]+)')
     def get_talent_profile(self, request, user_id=None):
@@ -211,11 +276,18 @@ class TalentProfileViewSet(viewsets.ModelViewSet):
 class OrganizerProfileViewSet(viewsets.ModelViewSet):
     serializer_class = OrganizerProfileSerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
             return OrganizerProfile.objects.filter(user=self.request.user)
         return OrganizerProfile.objects.none()
+
+    def perform_update(self, serializer):
+        print(f"OrganizerProfileViewSet perform_update: Request data -> {self.request.data}")
+        print(f"OrganizerProfileViewSet perform_update: Validated data -> {serializer.validated_data}")
+        serializer.save()
+        print(f"OrganizerProfileViewSet perform_update: Profile after save -> {serializer.instance.avatar.name if serializer.instance.avatar else 'No avatar'}")
 
 class FacultyViewSet(viewsets.ModelViewSet):
     queryset = Faculty.objects.all()
@@ -232,25 +304,44 @@ class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['required_skills', 'date', 'status', 'faculty']
+    filterset_fields = ['required_skills', 'date', 'status']
     parser_classes = [JSONParser, FormParser, MultiPartParser]
 
     def get_queryset(self):
-        queryset = Event.objects.all()
+        queryset = Event.objects.all().order_by('-date')
+
+        # Фильтрация по организатору
         if self.request.query_params.get('organizer') == 'me':
-            return queryset.filter(organizer=self.request.user)
+            queryset = queryset.filter(organizer=self.request.user)
         
+        # Фильтрация по статусу (если не 'published', так как RecommendationView фильтрует только опубликованные)
+        # В EventViewSet мы хотим иметь возможность фильтровать по любому статусу при необходимости
+        status_filter = self.request.query_params.get('status')
+        if status_filter:
+             # Обрабатываем множественные статусы, если нужно, но пока просто фильтруем по одному
+             queryset = queryset.filter(status=status_filter)
+
         # Фильтрация по факультету
         faculty_id = self.request.query_params.get('faculty')
-        if faculty_id:
-            if faculty_id == 'all':
-                return queryset
-            return queryset.filter(faculty_id=faculty_id)
-        
-        return queryset
+        if faculty_id and faculty_id != 'all':
+             try:
+                 # Проверяем, что факультет с таким ID существует
+                 faculty = Faculty.objects.get(id=faculty_id)
+                 # Фильтруем мероприятия, которые либо не имеют ограничения по факультету,
+                 # либо имеют ограничение и указанный факультет есть в списке доступных
+                 queryset = queryset.filter(
+                     Q(faculty_restriction=False) | Q(faculties=faculty)
+                 ).distinct()
+             except Faculty.DoesNotExist:
+                 # Если факультет не найден, возвращаем пустой queryset или все мероприятия (в зависимости от логики)
+                 # Пока вернем пустой, так как запрос на несуществующий факультет некорректен
+                 return Event.objects.none()
 
-    def perform_create(self, serializer):
-        serializer.save(organizer=self.request.user)
+        # Фильтрация по required_skills и date будет обрабатываться DjangoFilterBackend
+        # Убедимся, что фильтры из filterset_fields применяются АВТОМАТИЧЕСКИ DjangoFilterBackend-ом
+        # Этот get_queryset метод в основном для специфичной логики, типа 'organizer=me' и ручной фильтрации по факультету
+
+        return queryset
 
 class ApplicationViewSet(viewsets.ModelViewSet):
     serializer_class = ApplicationSerializer
@@ -261,10 +352,10 @@ class ApplicationViewSet(viewsets.ModelViewSet):
             user = self.request.user
             if hasattr(user, 'organizerprofile'):
                 # Для организатора показываем заявки на его мероприятия
-                return Application.objects.filter(event__organizer=user)
+                return Application.objects.filter(event__organizer=user).order_by('-created_at')
             else:
                 # Для таланта показываем его заявки
-                return Application.objects.filter(user=user)
+                return Application.objects.filter(user=user).order_by('-created_at')
         except Exception as e:
             print(f"Ошибка в ApplicationViewSet.get_queryset: {str(e)}")
             return Application.objects.none()
@@ -280,10 +371,26 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         try:
             # Получаем объект мероприятия по ID
             event = Event.objects.get(id=event_id)
-            
+            user = self.request.user
+
+            # Получаем профиль текущего пользователя (таланта)
+            try:
+                talent_profile = user.talent_profile
+                user_faculty = talent_profile.faculty
+            except TalentProfile.DoesNotExist:
+                 # Если у пользователя нет профиля таланта, он не может подать заявку как талант
+                 raise serializers.ValidationError({"detail": "У вас нет профиля таланта для подачи заявки"})
+
+            # Проверка ограничения по факультетам
+            if event.faculty_restriction:
+                if user_faculty is None or user_faculty not in event.faculties.all():
+                     raise serializers.ValidationError(
+                         {"detail": "Это мероприятие ограничено по факультетам, и ваш факультет не соответствует."}
+                     )
+
             # Проверка на дубликаты заявок
             existing_application = Application.objects.filter(
-                user=self.request.user,
+                user=user,
                 event=event
             ).exists()
             
@@ -292,7 +399,7 @@ class ApplicationViewSet(viewsets.ModelViewSet):
             
             # Сохраняем заявку с текущим пользователем и найденным мероприятием
             serializer.save(
-                user=self.request.user, 
+                user=user, 
                 event=event
             )
             
@@ -325,31 +432,62 @@ class RecommendationView(ListAPIView):
             # Проверяем, что навыки не пустые
             if not profile.skills or not profile.skills.strip():
                 print(f"У пользователя {self.request.user.username} нет навыков")
-                return Event.objects.none()
+                # Если навыков нет, возвращаем мероприятия, не ограниченные по факультетам
+                return Event.objects.filter(status='published', faculty_restriction=False).order_by('-date')
             
             user_skills = set(s.strip().lower() for s in profile.skills.split(',') if s.strip())
             events = Event.objects.filter(status='published')
             matched_events = []
 
             for event in events:
-                # Проверяем, что требуемые навыки не пустые
+                # Проверяем соответствие факультета, если ограничение включено
+                if event.faculty_restriction:
+                    # Проверяем, существует ли факультет у пользователя и входит ли он в список доступных
+                    if profile.faculty is None or profile.faculty not in event.faculties.all():
+                        continue # Пропускаем мероприятие, если факультет не соответствует
+                
+                # Проверяем, что требуемые навыки не пустые, если мероприятие не ограничено по факультету
+                # или у пользователя нет навыков, но мероприятие не имеет ограничений по факультетам.
+                # Если мероприятие ограничено по факультетам и факультет соответствует, навыки все равно проверяются.
+                
+                # Если у мероприятия нет требуемых навыков, оно не может быть рекомендовано по навыкам
                 if not event.required_skills or not event.required_skills.strip():
-                    continue
-                    
+                     # Но если оно не ограничено по факультетам, мы все равно можем его показать, если у пользователя нет навыков
+                     if not event.faculty_restriction and (not profile.skills or not profile.skills.strip()):
+                          matched_events.append(event.id) # Добавляем, если нет ограничений и нет навыков у пользователя
+                     continue # Пропускаем, если есть требуемые навыки, но их нет у пользователя
+                
                 required_skills = set(s.strip().lower() for s in event.required_skills.split(',') if s.strip())
                 common_skills = user_skills.intersection(required_skills)
                 
                 # Рекомендуем мероприятие, если у пользователя есть хотя бы один из требуемых навыков
+                # и оно прошло проверку факультета
                 if common_skills:
                     match_percentage = len(common_skills) / len(required_skills) if required_skills else 0
-                    # Если совпадение больше или равно 50%, добавляем в рекомендации
-                    if match_percentage >= 0.5:
+                    # Снижаем порог до 30%
+                    if match_percentage >= 0.3:
                         matched_events.append(event.id)
 
-            return Event.objects.filter(id__in=matched_events)
-        
+            # Убедимся, что в рекомендациях нет дубликатов и они отсортированы
+            recommended_events_queryset = Event.objects.filter(id__in=list(set(matched_events))).order_by('-date')
+
+            # Если у пользователя нет навыков, мы уже вернули только нефакультетские мероприятия выше
+            # Если навыки есть, добавляем к рекомендациям мероприятия без ограничений по факультетам,
+            # которые могли не пройти порог по навыкам, но могут быть интересны.
+            if profile.skills and profile.skills.strip():
+                 non_restricted_events = Event.objects.filter(status='published', faculty_restriction=False).exclude(id__in=matched_events).order_by('-date')
+                 # Объединяем queryset'ы. Это может быть неэффективно для очень больших данных, но для начала подойдет.
+                 # В более продвинутой реализации можно использовать Union.
+                 combined_queryset = list(recommended_events_queryset) + list(non_restricted_events)
+                 # Сортируем объединенный список по дате
+                 combined_queryset.sort(key=lambda x: x.date, reverse=True)
+                 return Event.objects.filter(id__in=[event.id for event in combined_queryset]) # Возвращаем queryset из ID
+            
+            return recommended_events_queryset # Если навыков нет, возвращаем только те, что прошли проверку выше
+
         except TalentProfile.DoesNotExist:
-            return Event.objects.none()
+            # Если у пользователя нет профиля таланта, показываем все нефакультетские опубликованные мероприятия
+            return Event.objects.filter(status='published', faculty_restriction=False).order_by('-date')
         except Exception as e:
             print(f"Ошибка при получении рекомендаций: {str(e)}")
             return Event.objects.none()
