@@ -15,10 +15,15 @@
 
 .search-filter-container {
   margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-end;
 }
 
 .search-box {
-  margin-bottom: 15px;
+  flex-grow: 1;
+  min-width: 200px;
 }
 
 .search-box input {
@@ -27,10 +32,33 @@
   border: 1px solid #ddd;
   font-size: 0.9rem;
   box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  width: 100%;
+}
+
+.faculty-filter {
+    min-width: 200px;
+}
+
+.faculty-filter .form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.faculty-filter .form-select {
+    border-radius: 20px;
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    width: 100%;
+    background-color: #fff;
 }
 
 .skills-filter {
-  margin-bottom: 15px;
+  flex-grow: 2;
+  min-width: 250px;
 }
 
 .skills-filter-label {

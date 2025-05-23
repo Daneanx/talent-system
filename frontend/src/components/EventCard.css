@@ -25,9 +25,7 @@
 .event-image {
   height: 100%;
   width: 100%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  object-fit: cover;
 }
 
 .event-no-image {
@@ -94,12 +92,10 @@
 .event-title {
   margin-top: 0;
   margin-bottom: 8px;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #333;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.4;
 }
 
 .event-date {
@@ -115,6 +111,11 @@
   display: flex;
   align-items: center;
   gap: 5px;
+}
+
+.event-location i {
+  margin-right: 5px;
+  color: #3498db;
 }
 
 .event-skills {
@@ -138,6 +139,46 @@
   display: flex;
   align-items: center;
   gap: 5px;
+}
+
+.event-applications-count i {
+  margin-right: 5px;
+  color: #2ecc71;
+}
+
+.event-faculties-restriction {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 10px;
+  border: 1px dashed #ccc;
+  padding: 8px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.event-faculties-restriction i {
+  margin-right: 5px;
+  color: #e05748;
+}
+
+.event-faculties-restriction ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 5px;
+  margin-bottom: 0;
+}
+
+.event-faculties-restriction li {
+  margin-bottom: 3px;
+  padding-left: 15px;
+  position: relative;
+}
+
+.event-faculties-restriction li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #e05748;
 }
 
 /* Masonry grid container */

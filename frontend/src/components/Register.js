@@ -25,6 +25,8 @@ const Register = ({ setToken, setUserType }) => {
     email: '',
     password: '',
     confirmPassword: '',
+    first_name: '',
+    last_name: '',
     skills: '',
     preferences: '',
     bio: '',
@@ -65,6 +67,8 @@ const Register = ({ setToken, setUserType }) => {
         username: formData.username,
         email: formData.email,
         password: formData.password,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
         skills: formData.skills,
         preferences: formData.preferences,
         bio: formData.bio,
@@ -81,7 +85,7 @@ const Register = ({ setToken, setUserType }) => {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('userType', response.data.userType);
         api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
-        navigate('/profile');
+        window.location.href = '/profile';
       } else {
         setError('Не удалось получить токен авторизации');
       }
@@ -141,6 +145,30 @@ const Register = ({ setToken, setUserType }) => {
                   className="form-control"
                   name="email"
                   value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Имя:</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="first_name"
+                  value={formData.first_name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Фамилия:</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="last_name"
+                  value={formData.last_name}
                   onChange={handleChange}
                   required
                 />

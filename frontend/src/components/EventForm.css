@@ -27,4 +27,79 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+.img-preview {
+    max-width: 200px;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.form-check {
+    margin-bottom: 1rem;
+}
+
+.form-check-input:checked {
+    background-color: #e05748;
+    border-color: #e05748;
+}
+
+.form-select[multiple] {
+    height: auto;
+    min-height: 120px;
+}
+
+.form-select[multiple] option {
+    padding: 8px 12px;
+}
+
+.form-select[multiple] option:checked {
+    background-color: #e05748;
+    color: white;
+}
+
+.form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #e05748;
+    box-shadow: 0 0 0 0.2rem rgba(224, 87, 72, 0.25);
+}
+
+.btn-primary {
+    background-color: #e05748;
+    border-color: #e05748;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+}
+
+.btn-primary:hover {
+    background-color: #c04738;
+    border-color: #c04738;
+}
+
+.alert {
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
 } 

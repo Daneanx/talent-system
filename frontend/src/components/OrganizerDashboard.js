@@ -226,7 +226,7 @@ const OrganizerDashboard = () => {
                                     </div>
                                     <div className="application-content">
                                         <div className="applicant-info">
-                                            <p><strong>Талант:</strong> {application.user.username}</p>
+                                            <p><strong>Талант:</strong> {application.user.first_name} {application.user.last_name} ({application.user.username})</p>
                                             <p><strong>Навыки:</strong> {application.talent_profile?.skills}</p>
                                             <p><strong>Дата подачи:</strong> {new Date(application.created_at).toLocaleDateString()}</p>
                                         </div>

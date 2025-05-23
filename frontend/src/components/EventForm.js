@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api';
 import './EventForm.css';
@@ -6,86 +6,82 @@ import './EventForm.css';
 const EventForm = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const isEditing = Boolean(id);
-    
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        date: '',
         required_skills: '',
+        date: '',
         location: '',
+        image: null,
         status: 'draft',
-        image: null
+        faculty_restriction: false,
+        faculty_ids: []
     });
+    const [faculties, setFaculties] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(isEditing);
     const [imagePreview, setImagePreview] = useState(null);
 
-    useEffect(() => {
-        if (isEditing) {
-            fetchEvent();
+    const fetchFaculties = async () => {
+        try {
+            const response = await api.get('api/faculties/');
+            console.log('Получены факультеты:', response.data);
+            setFaculties(response.data.results);
+        } catch (err) {
+            console.error('Ошибка загрузки факультетов:', err);
+            setError('Не удалось загрузить список факультетов');
         }
-    }, [id]);
+    };
 
-    const fetchEvent = async () => {
+    const fetchEvent = useCallback(async () => {
         try {
             const response = await api.get(`api/events/${id}/`);
             const event = response.data;
-            
             setFormData({
-                title: event.title,
-                description: event.description,
-                date: event.date,
-                required_skills: event.required_skills,
-                location: event.location,
-                status: event.status,
-                image: null // Изображение нужно загружать заново
+                ...event,
+                date: event.date.split('T')[0],
+                faculty_ids: event.faculties.map(f => f.id)
             });
-            
-            // Если есть изображение, устанавливаем предпросмотр
             if (event.image) {
-                setImagePreview(`http://127.0.0.1:8000${event.image}`);
+                setImagePreview(event.image);
             }
-            
             setLoading(false);
         } catch (err) {
-            setError('Ошибка загрузки мероприятия');
+            console.error('Ошибка загрузки мероприятия:', err);
+            setError('Не удалось загрузить данные мероприятия');
             setLoading(false);
         }
-    };
+    }, [id]);
+
+    useEffect(() => {
+        fetchFaculties();
+        if (id) {
+            fetchEvent();
+        } else {
+            setLoading(false);
+        }
+    }, [id, fetchEvent]);
 
     const handleChange = (e) => {
-        const { name, value, files } = e.target;
-        if (name === 'image') {
-            if (files && files[0]) {
-                setFormData(prev => ({
-                    ...prev,
-                    image: files[0]
-                }));
-                
-                // Создаем URL для предпросмотра
-                const previewURL = URL.createObjectURL(files[0]);
-                setImagePreview(previewURL);
+        const { name, value, type, checked, files } = e.target;
+        
+        if (type === 'file') {
+            const file = files[0];
+            setFormData(prev => ({ ...prev, image: file }));
+            if (file) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setImagePreview(reader.result);
+                };
+                reader.readAsDataURL(file);
             }
+        } else if (type === 'checkbox') {
+            setFormData(prev => ({ ...prev, [name]: checked }));
+        } else if (name === 'faculty_ids') {
+            const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+            setFormData(prev => ({ ...prev, faculty_ids: selectedOptions }));
         } else {
-            setFormData(prev => ({
-                ...prev,
-                [name]: value
-            }));
-        }
-    };
-
-    // Функция для очистки изображения
-    const clearImage = () => {
-        setFormData(prev => ({
-            ...prev,
-            image: null
-        }));
-        setImagePreview(null);
-        // Очищаем input file
-        const fileInput = document.querySelector('input[name="image"]');
-        if (fileInput) {
-            fileInput.value = '';
+            setFormData(prev => ({ ...prev, [name]: value }));
         }
     };
 
@@ -93,30 +89,29 @@ const EventForm = () => {
         e.preventDefault();
         setError('');
 
-        const data = new FormData();
-        Object.keys(formData).forEach(key => {
-            if (formData[key] !== null) {
-                data.append(key, formData[key]);
-            }
-        });
-
         try {
-            console.log('Отправка данных:', Object.fromEntries(data.entries()));
-            
-            if (isEditing) {
-                await api.patch(`api/events/${id}/`, data);
+            const formDataToSend = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (key === 'faculty_ids') {
+                    formData[key].forEach(id => {
+                        formDataToSend.append('faculty_ids', id);
+                    });
+                } else if (key === 'image' && formData[key]) {
+                    formDataToSend.append('image', formData[key]);
+                } else if (key !== 'faculties') {
+                    formDataToSend.append(key, formData[key]);
+                }
+            });
+
+            if (id) {
+                await api.patch(`api/events/${id}/`, formDataToSend);
             } else {
-                await api.post('api/events/', data);
+                await api.post('api/events/', formDataToSend);
             }
             navigate('/organizer/dashboard');
         } catch (err) {
-            console.error('Ошибка при сохранении мероприятия:', err.response || err);
-            setError(
-                err.response?.data?.detail || 
-                err.response?.data?.message || 
-                err.response?.data?.error || 
-                'Ошибка при сохранении мероприятия. Проверьте формат изображения.'
-            );
+            console.error('Ошибка сохранения мероприятия:', err);
+            setError(err.response?.data?.detail || 'Ошибка при сохранении мероприятия');
         }
     };
 
@@ -124,131 +119,165 @@ const EventForm = () => {
 
     return (
         <div className="container mt-4">
-            <h2>{isEditing ? 'Редактирование мероприятия' : 'Создание мероприятия'}</h2>
-            {error && <div className="alert alert-danger">{error}</div>}
-            
-            <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                    <label className="form-label">Название мероприятия:</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
+            <div className="row justify-content-center">
+                <div className="col-md-8">
+                    <div className="card shadow-sm">
+                        <div className="card-body">
+                            <h2 className="card-title text-center mb-4">
+                                {id ? 'Редактирование мероприятия' : 'Создание мероприятия'}
+                            </h2>
+                            
+                            {error && (
+                                <div className="alert alert-danger">
+                                    {error}
+                                </div>
+                            )}
 
-                <div className="mb-3">
-                    <label className="form-label">Описание:</label>
-                    <textarea
-                        className="form-control"
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        rows="4"
-                        required
-                    />
-                </div>
+                            <form onSubmit={handleSubmit}>
+                                <div className="mb-3">
+                                    <label className="form-label">Название мероприятия</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        name="title"
+                                        value={formData.title}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
 
-                <div className="mb-3">
-                    <label className="form-label">Дата проведения:</label>
-                    <input
-                        type="date"
-                        className="form-control"
-                        name="date"
-                        value={formData.date}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Описание</label>
+                                    <textarea
+                                        className="form-control"
+                                        name="description"
+                                        value={formData.description}
+                                        onChange={handleChange}
+                                        rows="4"
+                                        required
+                                    />
+                                </div>
 
-                <div className="mb-3">
-                    <label className="form-label">Требуемые навыки (через запятую):</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        name="required_skills"
-                        value={formData.required_skills}
-                        onChange={handleChange}
-                        placeholder="Например: танцы, пение, актерское мастерство"
-                        required
-                    />
-                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Требуемые навыки (через запятую)</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        name="required_skills"
+                                        value={formData.required_skills}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
 
-                <div className="mb-3">
-                    <label className="form-label">Место проведения:</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        name="location"
-                        value={formData.location}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Дата</label>
+                                    <input
+                                        type="date"
+                                        className="form-control"
+                                        name="date"
+                                        value={formData.date}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
 
-                <div className="mb-3">
-                    <label className="form-label">Статус:</label>
-                    <select
-                        className="form-select"
-                        name="status"
-                        value={formData.status}
-                        onChange={handleChange}
-                    >
-                        <option value="draft">Черновик</option>
-                        <option value="published">Опубликовано</option>
-                        <option value="closed">Закрыто</option>
-                        <option value="cancelled">Отменено</option>
-                    </select>
-                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Место проведения</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        name="location"
+                                        value={formData.location}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
 
-                <div className="mb-3">
-                    <label className="form-label">Изображение:</label>
-                    <div className="d-flex align-items-center gap-3">
-                        <input
-                            type="file"
-                            className="form-control"
-                            name="image"
-                            onChange={handleChange}
-                            accept="image/*"
-                        />
-                        {imagePreview && (
-                            <button 
-                                type="button" 
-                                className="btn btn-sm btn-danger"
-                                onClick={clearImage}
-                            >
-                                <i className="fas fa-times"></i>
-                            </button>
-                        )}
-                    </div>
-                    
-                    {imagePreview && (
-                        <div className="image-preview-container mt-3">
-                            <img 
-                                src={imagePreview} 
-                                alt="Предпросмотр" 
-                                className="image-preview" 
-                            />
+                                <div className="mb-3">
+                                    <label className="form-label">Изображение</label>
+                                    <input
+                                        type="file"
+                                        className="form-control"
+                                        name="image"
+                                        onChange={handleChange}
+                                        accept="image/*"
+                                    />
+                                    {imagePreview && (
+                                        <div className="mt-2">
+                                            <img
+                                                src={imagePreview}
+                                                alt="Preview"
+                                                className="img-preview"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mb-3">
+                                    <div className="form-check">
+                                        <input
+                                            type="checkbox"
+                                            className="form-check-input"
+                                            name="faculty_restriction"
+                                            checked={formData.faculty_restriction}
+                                            onChange={handleChange}
+                                            id="facultyRestriction"
+                                        />
+                                        <label className="form-check-label" htmlFor="facultyRestriction">
+                                            Ограничить доступ по факультетам
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {formData.faculty_restriction && (
+                                    <div className="mb-3">
+                                        <label className="form-label">Доступные факультеты</label>
+                                        <select
+                                            className="form-select"
+                                            name="faculty_ids"
+                                            multiple
+                                            value={formData.faculty_ids}
+                                            onChange={handleChange}
+                                            required={formData.faculty_restriction}
+                                        >
+                                            {Array.isArray(faculties) && faculties.map(faculty => (
+                                                <option key={faculty.id} value={faculty.id}>
+                                                    {faculty.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <small className="form-text text-muted">
+                                            Удерживайте Ctrl (Cmd на Mac) для выбора нескольких факультетов
+                                        </small>
+                                    </div>
+                                )}
+
+                                <div className="mb-3">
+                                    <label className="form-label">Статус</label>
+                                    <select
+                                        className="form-select"
+                                        name="status"
+                                        value={formData.status}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="draft">Черновик</option>
+                                        <option value="published">Опубликовано</option>
+                                        <option value="closed">Закрыто</option>
+                                        <option value="cancelled">Отменено</option>
+                                    </select>
+                                </div>
+
+                                <div className="d-flex justify-content-end">
+                                    <button type="submit" className="btn btn-primary">
+                                        {id ? 'Сохранить изменения' : 'Создать мероприятие'}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                    )}
+                    </div>
                 </div>
-
-                <div className="d-flex gap-2">
-                    <button type="submit" className="btn btn-primary">
-                        {isEditing ? 'Сохранить изменения' : 'Создать мероприятие'}
-                    </button>
-                    <button 
-                        type="button" 
-                        className="btn btn-secondary"
-                        onClick={() => navigate('/organizer/dashboard')}
-                    >
-                        Отмена
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     );
 };

@@ -132,6 +132,19 @@ const EventDetail = () => {
                         </div>
                     </div>
                     
+                    {/* Отображение ограничения по факультетам */}
+                    {event.faculty_restriction && event.faculties && Array.isArray(event.faculties) && event.faculties.length > 0 && (
+                         <div className="event-faculties-restriction">
+                             <i className="fas fa-building"></i>
+                             Ограничено по факультетам:
+                             <ul>
+                                 {event.faculties.map(faculty => (
+                                     <li key={faculty.id}>{faculty.name}</li>
+                                 ))}
+                             </ul>
+                         </div>
+                    )}
+
                     <div className="event-description">
                         <h3>Описание</h3>
                         <p>{event.description}</p>

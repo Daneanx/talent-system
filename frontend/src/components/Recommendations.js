@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import api from '../api';
 import EventCard from './EventCard';
 import './Recommendations.css';
@@ -13,13 +12,17 @@ const Recommendations = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSkills, setSelectedSkills] = useState([]);
     const [availableSkills, setAvailableSkills] = useState([]);
+    const [faculties, setFaculties] = useState([]);
+    const [selectedFaculty, setSelectedFaculty] = useState('all');
 
     useEffect(() => {
         fetchData();
+        fetchFaculties();
     }, []);
 
     const fetchData = async () => {
         try {
+            // Запрашиваем рекомендации и все опубликованные мероприятия
             const [recResponse, eventsResponse] = await Promise.all([
                 api.get('api/recommendations/'),
                 api.get('api/events/?status=published')
@@ -34,8 +37,11 @@ const Recommendations = () => {
             
             // Обрабатываем данные всех событий
             let eventsData = eventsResponse.data;
-            if (!Array.isArray(eventsData)) {
-                eventsData = eventsData?.results || [];
+            // Проверяем, является ли response.data объектом с полем results (как в случае пагинации)
+            if (eventsData && eventsData.results && Array.isArray(eventsData.results)) {
+                 eventsData = eventsData.results; // Используем массив из results
+            } else if (!Array.isArray(eventsData)) {
+                 eventsData = []; // Если не массив и не объект с results, считаем пустым
             }
             setAllEvents(eventsData);
             
@@ -54,9 +60,24 @@ const Recommendations = () => {
             
             setLoading(false);
         } catch (err) {
-            console.error('Ошибка загрузки рекомендаций:', err);
-            setError('Ошибка загрузки рекомендаций');
+            console.error('Ошибка загрузки рекомендаций или мероприятий:', err);
+            setError('Ошибка загрузки данных');
             setLoading(false);
+        }
+    };
+
+    const fetchFaculties = async () => {
+        try {
+            const response = await api.get('api/faculties/');
+             // Убедимся, что получаем массив из results
+            if (response.data && Array.isArray(response.data.results)) {
+                 setFaculties(response.data.results);
+             } else {
+                 setFaculties([]); // Устанавливаем пустой массив, если данные не в ожидаемом формате
+             }
+        } catch (err) {
+            console.error('Ошибка загрузки факультетов:', err);
+            // Обрабатываем ошибку загрузки факультетов, но не блокируем отображение мероприятий
         }
     };
 
@@ -70,6 +91,10 @@ const Recommendations = () => {
         });
     };
 
+     const handleFacultyChange = (e) => {
+         setSelectedFaculty(e.target.value);
+     };
+
     const filteredEvents = () => {
         let events = activeTab === 'recommended' ? recommendations : allEvents;
         
@@ -79,14 +104,25 @@ const Recommendations = () => {
             events = events.filter(event => 
                 event.title.toLowerCase().includes(term) || 
                 event.description.toLowerCase().includes(term) ||
-                event.location.toLowerCase().includes(term)
+                event.location.toLowerCase().includes(term) ||
+                 // Добавляем поиск по факультетам, если они есть в объекте события
+                 (event.faculties && event.faculties.some(f => f.name.toLowerCase().includes(term)))
             );
         }
         
+        // Фильтрация по выбранному факультету
+        if (selectedFaculty !== 'all') {
+            events = events.filter(event => {
+                 // Мероприятие подходит, если у него нет ограничений по факультетам
+                 // ИЛИ оно имеет ограничения И выбранный факультет есть в списке доступных
+                 return !event.faculty_restriction || (event.faculty_restriction && event.faculties.some(f => String(f.id) === selectedFaculty));
+            });
+        }
+
         // Фильтрация по выбранным навыкам
         if (selectedSkills.length > 0) {
             events = events.filter(event => {
-                const eventSkills = event.required_skills.split(',').map(s => s.trim());
+                const eventSkills = event.required_skills ? event.required_skills.split(',').map(s => s.trim()).filter(s => s) : [];
                 return selectedSkills.some(skill => eventSkills.includes(skill));
             });
         }
@@ -110,10 +146,30 @@ const Recommendations = () => {
                             className="form-control"
                         />
                     </div>
+                    {/* Фильтр по факультетам */}
+                    {Array.isArray(faculties) && faculties.length > 0 && (
+                        <div className="faculty-filter">
+                            <label htmlFor="facultyFilter" className="form-label">Фильтр по факультету:</label>
+                            <select
+                                id="facultyFilter"
+                                className="form-select"
+                                value={selectedFaculty}
+                                onChange={handleFacultyChange}
+                            >
+                                <option value="all">Все факультеты</option>
+                                {faculties.map(faculty => (
+                                    <option key={faculty.id} value={faculty.id}>
+                                        {faculty.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
                     <div className="skills-filter">
                         <span className="skills-filter-label">Фильтр по навыкам:</span>
                         <div className="skills-tags">
-                            {availableSkills.map(skill => (
+                            {Array.isArray(availableSkills) && availableSkills.map(skill => (
                                 <span 
                                     key={skill} 
                                     className={`skill-tag ${selectedSkills.includes(skill) ? 'active' : ''}`}
@@ -125,6 +181,7 @@ const Recommendations = () => {
                         </div>
                     </div>
                 </div>
+                
                 <div className="tabs-container">
                     <button 
                         className={`tab-button ${activeTab === 'recommended' ? 'active' : ''}`}
