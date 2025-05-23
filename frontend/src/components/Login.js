@@ -1,97 +1,102 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import './Login.css';
 
 const Login = ({ setToken, setUserType }) => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    username: '',
+    password: ''
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        console.log('Отправляемые данные:', { username, password });
-        try {
-            const response = await api.post('api/login/', { username, password });
-            console.log('Ответ сервера:', response.data);
-            
-            const accessToken = response.data.access;
-            const userType = response.data.userType;
-            
-            setToken(accessToken);
-            if (userType) {
-                setUserType(userType);
-                localStorage.setItem('userType', userType);
-            } else {
-                // Если тип пользователя не вернулся, делаем дополнительный запрос для проверки
-                try {
-                    // Устанавливаем токен для запроса
-                    api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-                    
-                    // Проверяем, есть ли профиль организатора
-                    const orgResponse = await api.get('api/organizer/profiles/');
-                    if (orgResponse.data.length > 0 || (orgResponse.data.results && orgResponse.data.results.length > 0)) {
-                        setUserType('organizer');
-                        localStorage.setItem('userType', 'organizer');
-                    } else {
-                        setUserType('talent');
-                        localStorage.setItem('userType', 'talent');
-                    }
-                } catch (e) {
-                    // Если ошибка - вероятно это обычный пользователь
-                    setUserType('talent');
-                    localStorage.setItem('userType', 'talent');
-                }
-            }
-            
-            localStorage.setItem('token', accessToken);
-            api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-            setError('');
-        } catch (err) {
-            console.error('Ошибка входа:', err.response?.data || err.message);
-            setError(
-                err.response?.data?.detail || 'Ошибка входа. Проверьте данные.'
-            );
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+  };
 
-    return (
-        <div className="container mt-5">
-            <h2 className="text-center">Вход</h2>
-            <form onSubmit={handleSubmit} className="col-md-6 mx-auto">
-                <div className="mb-3">
-                    <label className="form-label">Имя пользователя:</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="mb-3">
-                    <label className="form-label">Пароль:</label>
-                    <input
-                        type="password"
-                        className="form-control"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                </div>
-                <button 
-                    type="submit" 
-                    className="btn btn-primary w-100" 
-                    disabled={isLoading}
-                >
-                    {isLoading ? 'Вход...' : 'Войти'}
-                </button>
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await api.post('api/login/', {
+        username: formData.username,
+        password: formData.password
+      });
+
+      setToken(response.data.access);
+      setUserType(response.data.userType);
+      localStorage.setItem('token', response.data.access);
+      localStorage.setItem('userType', response.data.userType);
+      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
+
+      navigate(response.data.userType === 'organizer' ? '/organizer/dashboard' : '/recommendations');
+    } catch (err) {
+      console.error('Ошибка входа:', err);
+      setError(err.response?.data?.error || 'Ошибка при входе');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="login-container">
+      <div className="row justify-content-center">
+        <div className="col-md-6">
+          <div className="login-card">
+            <h2 className="login-title">Вход</h2>
+
+            {error && (
+              <div className="alert alert-danger">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <label className="form-label">Имя пользователя:</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Пароль:</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={loading}
+              >
+                {loading ? 'Вход...' : 'Войти'}
+              </button>
             </form>
-            {error && <p className="text-danger text-center mt-3">{error}</p>}
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default Login;

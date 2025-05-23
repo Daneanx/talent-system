@@ -21,17 +21,20 @@ code {
   column-count: 3;
   column-gap: 20px;
   padding: 20px;
+  column-width: 300px; /* Минимальная ширина колонки */
 }
 
 @media (max-width: 991px) {
   .masonry-grid {
     column-count: 2;
+    column-width: 250px;
   }
 }
 
 @media (max-width: 767px) {
   .masonry-grid {
     column-count: 1;
+    column-width: auto;
   }
 }
 
