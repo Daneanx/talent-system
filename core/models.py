@@ -42,6 +42,13 @@ class TalentProfile(models.Model):
     def __str__(self):
         return f"Профиль {self.user.username}"
 
+    def get_education_level_display(self):
+        """Возвращает отображаемое значение для поля education_level"""
+        for code, display in self.EDUCATION_LEVELS:
+            if code == self.education_level:
+                return display
+        return ""
+
 # OrganizerProfile хранит информацию об организаторе
 class OrganizerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

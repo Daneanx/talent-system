@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (TalentProfileViewSet, OrganizerProfileViewSet, EventViewSet, 
                    ApplicationViewSet, RecommendationView, register_user, 
-                   register_organizer, login, FacultyViewSet)
+                   register_organizer, login, FacultyViewSet, create_application)
 from rest_framework_simplejwt.views import TokenObtainPairView # Для создания эндпоинта для логина
 
 router = DefaultRouter()
@@ -18,4 +18,5 @@ urlpatterns = [
     path('register/organizer/', register_organizer, name='register-organizer'),
     path('login/', login, name='login'),
     path('recommendations/', RecommendationView.as_view(), name='recommendations'),
+    path('apply/', create_application, name='create-application'),
 ]

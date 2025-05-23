@@ -26,12 +26,14 @@ class TalentProfileSerializer(serializers.ModelSerializer):
         queryset=Faculty.objects.all(),
         source='faculty',
         write_only=True,
-        required=True
+        required=False
     )
     education_level_display = serializers.CharField(source='get_education_level_display', read_only=True)
 
     def validate_skills(self, value):
         print(f"Проверяем навыки: {value}")  # Логирование
+        if value is None:
+            return ""
         if not value.strip():
             raise serializers.ValidationError("Поле навыков не может быть пустым.")
         # Проверка на наличие разделения навыков запятыми и на отсутствие некорректных символов
@@ -51,16 +53,20 @@ class TalentProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = TalentProfile
         fields = [
-            'id', 'skills', 'preferences', 'bio', 
+            'id', 'user', 'skills', 'preferences', 'bio', 
             'faculty', 'faculty_id', 'education_level',
             'education_level_display', 'course'
         ]
         read_only_fields = ['user']
 
     def update(self, instance, validated_data):
+        print(f"Обновление профиля. Валидированные данные: {validated_data}")
         instance.skills = validated_data.get('skills', instance.skills)
         instance.preferences = validated_data.get('preferences', instance.preferences)
         instance.bio = validated_data.get('bio', instance.bio)
+        instance.faculty = validated_data.get('faculty', instance.faculty)
+        instance.education_level = validated_data.get('education_level', instance.education_level)
+        instance.course = validated_data.get('course', instance.course)
         instance.save()
         return instance
 
@@ -120,8 +126,10 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
     def get_talent_profile(self, obj):
         try:
-            return TalentProfileSerializer(obj.user.talentprofile).data
-        except TalentProfile.DoesNotExist:
+            if hasattr(obj.user, 'talent_profile'):
+                return TalentProfileSerializer(obj.user.talent_profile).data
+            return None
+        except Exception:
             return None
 
     class Meta:

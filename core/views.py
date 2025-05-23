@@ -19,20 +19,36 @@ from rest_framework import serializers
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def register_user(request):
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        user = serializer.save()
-        # Создание пустого профиля для пользователя
-        TalentProfile.objects.create(user=user, skills="", preferences="", bio="")
-        # Генерация токена
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            'user': serializer.data,
-            'token': str(refresh.access_token),
-            'refresh': str(refresh),
-            'userType': 'talent'
-        }, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        print(f"Регистрация пользователя, данные: {request.data}")
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            # Создание профиля для пользователя с передачей всех данных
+            profile = TalentProfile.objects.create(
+                user=user,
+                skills=request.data.get('skills', ''),
+                preferences=request.data.get('preferences', ''),
+                bio=request.data.get('bio', ''),
+                faculty_id=request.data.get('faculty_id'),
+                education_level=request.data.get('education_level'),
+                course=request.data.get('course')
+            )
+            print(f"Создан профиль таланта с ID: {profile.id}")
+            
+            # Генерация токена
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'user': serializer.data,
+                'token': str(refresh.access_token),
+                'refresh': str(refresh),
+                'userType': 'talent'
+            }, status=status.HTTP_201_CREATED)
+        print(f"Ошибки валидации при регистрации: {serializer.errors}")
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        print(f"Ошибка при регистрации пользователя: {str(e)}")
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
@@ -135,74 +151,46 @@ def create_application(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# Метод рекомендаций
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_recommendations(request):
-    if not request.user.is_authenticated:
-        return Response({'error': 'Authentication required'}, status=401)
-
-    try:
-        profile = TalentProfile.objects.get(user=request.user)
-        
-        # Проверяем, что навыки не пустые
-        if not profile.skills or not profile.skills.strip():
-            print(f"У пользователя {request.user.username} нет навыков")
-            return Response([])
-        
-        user_skills = set(s.strip().lower() for s in profile.skills.split(',') if s.strip())
-        events = Event.objects.filter(status='published')
-        matched_events = []
-
-        for event in events:
-            # Проверяем, что требуемые навыки не пустые
-            if not event.required_skills or not event.required_skills.strip():
-                continue
-                
-            required_skills = set(s.strip().lower() for s in event.required_skills.split(',') if s.strip())
-            common_skills = user_skills.intersection(required_skills)
-            
-            # Рекомендуем мероприятие, если у пользователя есть хотя бы один из требуемых навыков
-            if common_skills:
-                match_percentage = len(common_skills) / len(required_skills) if required_skills else 0
-                # Если совпадение больше или равно 50%, добавляем в рекомендации
-                if match_percentage >= 0.5:
-                    matched_events.append(event)
-
-        serializer = EventSerializer(matched_events, many=True)
-        return Response(serializer.data)
-    
-    except TalentProfile.DoesNotExist:
-        return Response({'error': 'Profile not found'}, status=404)
-    except Exception as e:
-        print(f"Ошибка при получении рекомендаций: {str(e)}")
-        return Response({'error': 'Error while getting recommendations'}, status=500)
-
 class TalentProfileViewSet(viewsets.ModelViewSet):
     queryset = TalentProfile.objects.all()
     serializer_class = TalentProfileSerializer
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        # Проверяем, существует ли профиль для текущего пользователя
-        user = self.request.user
-        profile, created = TalentProfile.objects.get_or_create(user=user)
-        if not created:
-            # Если профиль уже существует, обновляем его
-            serializer.update(profile, serializer.validated_data)
-        else:
-            # Если профиль новый, сохраняем
-            serializer.save(user=user)
+        try:
+            # Проверяем, существует ли профиль для текущего пользователя
+            user = self.request.user
+            try:
+                profile = TalentProfile.objects.get(user=user)
+                print(f"Найден существующий профиль для {user.username}")
+                # Если профиль уже существует, обновляем его
+                serializer.update(profile, serializer.validated_data)
+            except TalentProfile.DoesNotExist:
+                print(f"Создание нового профиля для {user.username}")
+                # Если профиль новый, сохраняем
+                serializer.save(user=user)
+                
+        except Exception as e:
+            print(f"Ошибка в perform_create: {str(e)}")
+            # В случае исключения создаем новый профиль с минимальными данными
+            TalentProfile.objects.get_or_create(
+                user=self.request.user,
+                defaults={'skills': "", 'preferences': "", 'bio': ""}
+            )
             
     def get_queryset(self):
-        if self.request.user.is_authenticated:
-            # Проверяем, если передан параметр user_id, то возвращаем конкретный профиль
-            user_id = self.kwargs.get('user_id')
-            if user_id:
-                return TalentProfile.objects.filter(user_id=user_id).order_by('id')
-            # Иначе возвращаем профиль текущего пользователя
-            return TalentProfile.objects.filter(user=self.request.user).order_by('id')
-        return TalentProfile.objects.none()
+        try:
+            if self.request.user.is_authenticated:
+                # Проверяем, если передан параметр user_id, то возвращаем конкретный профиль
+                user_id = self.kwargs.get('user_id')
+                if user_id:
+                    return TalentProfile.objects.filter(user_id=user_id).order_by('id')
+                # Иначе возвращаем профиль текущего пользователя
+                return TalentProfile.objects.filter(user=self.request.user).order_by('id')
+            return TalentProfile.objects.none()
+        except Exception as e:
+            print(f"Ошибка в TalentProfileViewSet.get_queryset: {str(e)}")
+            return TalentProfile.objects.none()
         
     def perform_update(self, serializer):
         print(f"Полученные данные: {serializer.initial_data}")  # Логирование входных данных
@@ -269,13 +257,17 @@ class ApplicationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        if hasattr(user, 'organizerprofile'):
-            # Для организатора показываем заявки на его мероприятия
-            return Application.objects.filter(event__organizer=user)
-        else:
-            # Для таланта показываем его заявки
-            return Application.objects.filter(user=user)
+        try:
+            user = self.request.user
+            if hasattr(user, 'organizerprofile'):
+                # Для организатора показываем заявки на его мероприятия
+                return Application.objects.filter(event__organizer=user)
+            else:
+                # Для таланта показываем его заявки
+                return Application.objects.filter(user=user)
+        except Exception as e:
+            print(f"Ошибка в ApplicationViewSet.get_queryset: {str(e)}")
+            return Application.objects.none()
 
     def perform_create(self, serializer):
         print(f"Создание заявки, данные: {self.request.data}")
@@ -330,47 +322,34 @@ class RecommendationView(ListAPIView):
         try:
             profile = TalentProfile.objects.get(user=self.request.user)
             
-            # Логируем навыки пользователя для отладки
-            print(f"Навыки пользователя {self.request.user.username}: {profile.skills}")
-            
             # Проверяем, что навыки не пустые
             if not profile.skills or not profile.skills.strip():
                 print(f"У пользователя {self.request.user.username} нет навыков")
-                return Event.objects.filter(status='published').order_by('-date')
+                return Event.objects.none()
             
             user_skills = set(s.strip().lower() for s in profile.skills.split(',') if s.strip())
-            print(f"Обработанные навыки пользователя: {user_skills}")
-            
             events = Event.objects.filter(status='published')
             matched_events = []
 
             for event in events:
-                print(f"Проверка мероприятия {event.title}, требуемые навыки: {event.required_skills}")
-                
                 # Проверяем, что требуемые навыки не пустые
                 if not event.required_skills or not event.required_skills.strip():
                     continue
-                
+                    
                 required_skills = set(s.strip().lower() for s in event.required_skills.split(',') if s.strip())
-                print(f"Обработанные требуемые навыки: {required_skills}")
-                
                 common_skills = user_skills.intersection(required_skills)
-                print(f"Общие навыки: {common_skills}")
                 
                 # Рекомендуем мероприятие, если у пользователя есть хотя бы один из требуемых навыков
                 if common_skills:
                     match_percentage = len(common_skills) / len(required_skills) if required_skills else 0
-                    print(f"Процент совпадения: {match_percentage * 100:.2f}%")
-                    
                     # Если совпадение больше или равно 50%, добавляем в рекомендации
                     if match_percentage >= 0.5:
                         matched_events.append(event.id)
-                        print(f"Мероприятие {event.title} добавлено в рекомендации")
 
-            return Event.objects.filter(id__in=matched_events).order_by('-date')
+            return Event.objects.filter(id__in=matched_events)
+        
         except TalentProfile.DoesNotExist:
-            print(f"Профиль для пользователя {self.request.user.username} не найден")
-            return Event.objects.filter(status='published').order_by('-date')
+            return Event.objects.none()
         except Exception as e:
             print(f"Ошибка при получении рекомендаций: {str(e)}")
-            return Event.objects.filter(status='published').order_by('-date')
+            return Event.objects.none()
