@@ -28,16 +28,32 @@ const Register = ({ setToken, setUserType }) => {
     confirmPassword: '',
     first_name: '',
     last_name: '',
-    skills: '',
     preferences: '',
     bio: '',
     faculty_id: '',
     education_level: '',
-    course: ''
+    course: '',
+    skills: [] // Изменяем на массив для выбранных навыков
   });
   const faculties = AGU_FACULTIES;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [availableSkills, setAvailableSkills] = useState([]); // Состояние для доступных навыков
+
+  useEffect(() => {
+      // Загрузка списка навыков при монтировании компонента
+      const fetchSkills = async () => {
+          try {
+              const response = await api.get('api/skills/');
+              setAvailableSkills(response.data);
+          } catch (err) {
+              console.error('Ошибка загрузки навыков:', err);
+              // Обработка ошибки загрузки навыков, возможно, вывод сообщения пользователю
+          }
+      };
+
+      fetchSkills();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -45,6 +61,26 @@ const Register = ({ setToken, setUserType }) => {
       ...prevState,
       [name]: value
     }));
+  };
+
+  // Обработчик выбора/снятия выбора навыка
+  const handleSkillSelect = (skillId) => {
+      setFormData(prevState => {
+          const selectedSkills = prevState.skills;
+          if (selectedSkills.includes(skillId)) {
+              // Навык уже выбран, удаляем его
+              return {
+                  ...prevState,
+                  skills: selectedSkills.filter(id => id !== skillId)
+              };
+          } else {
+              // Навык не выбран, добавляем его
+              return {
+                  ...prevState,
+                  skills: [...selectedSkills, skillId]
+              };
+          }
+      });
   };
 
   const handleSubmit = async (e) => {
@@ -70,7 +106,7 @@ const Register = ({ setToken, setUserType }) => {
         password: formData.password,
         first_name: formData.first_name,
         last_name: formData.last_name,
-        skills: formData.skills,
+        skills: formData.skills, // Отправляем массив ID навыков
         preferences: formData.preferences,
         bio: formData.bio,
         faculty_id: formData.faculty_id,
@@ -247,14 +283,18 @@ const Register = ({ setToken, setUserType }) => {
 
               <div className="mb-3">
                 <label className="form-label">Навыки:</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="skills"
-                  value={formData.skills}
-                  onChange={handleChange}
-                  placeholder="Например: танцы, пение, рисование"
-                />
+                <div className="skills-selection">
+                    {availableSkills.map(skill => (
+                        <button
+                            key={skill.id}
+                            type="button" // Важно, чтобы кнопка не отправляла форму
+                            className={`skill-tile ${formData.skills.includes(skill.id) ? 'selected' : ''}`}
+                            onClick={() => handleSkillSelect(skill.id)}
+                        >
+                            {skill.name}
+                        </button>
+                    ))}
+                </div>
               </div>
 
               <div className="mb-3">

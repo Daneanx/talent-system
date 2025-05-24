@@ -51,12 +51,14 @@ const EventCard = ({ event, isOrganizer = false, isDashboardCard = false }) => {
     
     // Получение списка навыков с ограничением
     const getSkills = (limit = isDashboardCard ? 3 : Infinity) => {
-        return event.required_skills 
-            ? event.required_skills.split(',').map(s => s.trim()).filter(s => s).slice(0, limit)
-            : [];
+        // Проверяем, что event и required_skills являются массивом перед map
+        if (!event || !Array.isArray(event.required_skills)) {
+            return [];
+        }
+        return event.required_skills.slice(0, limit).map(skill => skill.name);
     };
     
-    const hasMoreSkills = event.required_skills && event.required_skills.split(',').map(s => s.trim()).filter(s => s).length > (isDashboardCard ? 3 : Infinity);
+    const hasMoreSkills = event && Array.isArray(event.required_skills) && event.required_skills.length > (isDashboardCard ? 3 : Infinity);
 
     const handleClick = () => {
         if (isOrganizer) {
@@ -66,26 +68,13 @@ const EventCard = ({ event, isOrganizer = false, isDashboardCard = false }) => {
         }
     };
     
-    // Определяем классы для статуса (не отображается для карточек дашборда)
-    const getStatusClass = () => {
-        if (!event.status) return 'status-draft';
-        
-        switch(event.status) {
-            case 'published': return 'status-published';
-            case 'closed': return 'status-closed';
-            case 'cancelled': return 'status-cancelled';
-            default: return 'status-draft';
-        }
-    };
-
-    const getStatusText = () => {
-        if (!event.status) return 'Черновик';
-        
-        switch(event.status) {
-            case 'published': return 'Опубликовано';
-            case 'closed': return 'Закрыто';
-            case 'cancelled': return 'Отменено';
-            default: return 'Черновик';
+    // Вспомогательная функция для получения текста и класса статуса заявки
+    const getApplicationStatusDisplay = (status) => {
+        switch(status) {
+            case 'pending': return { text: 'В ожидании', class: 'status-application-pending' };
+            case 'approved': return { text: 'Одобрено', class: 'status-application-approved' };
+            case 'rejected': return { text: 'Отклонено', class: 'status-application-rejected' };
+            default: return { text: '', class: '' };
         }
     };
 
@@ -113,11 +102,14 @@ const EventCard = ({ event, isOrganizer = false, isDashboardCard = false }) => {
                         <span>{event.title ? event.title.substring(0, 1).toUpperCase() : '?'}</span>
                     </div>
                 )}
+                {/* Отображаем статус заявки для талантов или статус мероприятия для организаторов и других */}
                 {!isDashboardCard && (
-                     <div className={`event-status ${getStatusClass()}`}>
-                         {getStatusText()}
-                     </div>
-                 )}
+                    event.user_application_status ? (
+                        <div className={`event-status ${getApplicationStatusDisplay(event.user_application_status).class}`}>
+                            {getApplicationStatusDisplay(event.user_application_status).text}
+                        </div>
+                    ) : null /* Убираем отображение статуса мероприятия, если нет заявки */
+                )}
             </div>
             <div className="event-card-content">
                 <h3 className="event-title">{event.title || 'Без названия'}</h3>
@@ -143,8 +135,8 @@ const EventCard = ({ event, isOrganizer = false, isDashboardCard = false }) => {
                 )}
 
                 <div className="event-skills">
-                    {getSkills().map((skill, index) => (
-                        <span key={index} className="skill-tag">{skill}</span>
+                    {getSkills().map((skillName, index) => (
+                        <span key={index} className="skill-tag">{skillName}</span>
                     ))}
                     {hasMoreSkills && <span className="skill-tag skill-more">...</span>}
                 </div>
@@ -166,7 +158,10 @@ EventCard.propTypes = {
     image: PropTypes.string,
     date: PropTypes.string,
     location: PropTypes.string,
-    required_skills: PropTypes.string,
+    required_skills: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+        name: PropTypes.string,
+    })),
     faculty_restriction: PropTypes.bool,
     faculties: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -174,6 +169,7 @@ EventCard.propTypes = {
     })),
     applications_count: PropTypes.number,
     status: PropTypes.string,
+    user_application_status: PropTypes.string,
   }).isRequired,
   isOrganizer: PropTypes.bool,
   isDashboardCard: PropTypes.bool,

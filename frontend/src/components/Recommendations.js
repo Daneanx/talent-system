@@ -18,6 +18,7 @@ const Recommendations = () => {
     useEffect(() => {
         fetchData();
         fetchFaculties();
+        fetchSkills();
     }, []);
 
     const fetchData = async () => {
@@ -45,19 +46,6 @@ const Recommendations = () => {
             }
             setAllEvents(eventsData);
             
-            // Извлекаем все уникальные навыки из событий
-            const skillsSet = new Set();
-            if (Array.isArray(eventsData)) {
-                eventsData.forEach(event => {
-                    if (event.required_skills) {
-                        event.required_skills.split(',').forEach(skill => {
-                            skillsSet.add(skill.trim());
-                        });
-                    }
-                });
-            }
-            setAvailableSkills(Array.from(skillsSet));
-            
             setLoading(false);
         } catch (err) {
             console.error('Ошибка загрузки рекомендаций или мероприятий:', err);
@@ -81,12 +69,25 @@ const Recommendations = () => {
         }
     };
 
-    const handleSkillToggle = (skill) => {
-        setSelectedSkills(prev => {
-            if (prev.includes(skill)) {
-                return prev.filter(s => s !== skill);
+    const fetchSkills = async () => {
+        try {
+            const response = await api.get('api/skills/');
+            if (response.data && Array.isArray(response.data.results)) {
+                setAvailableSkills(response.data.results);
             } else {
-                return [...prev, skill];
+                setAvailableSkills([]);
+            }
+        } catch (err) {
+            console.error('Ошибка загрузки навыков:', err);
+        }
+    };
+
+    const handleSkillToggle = (skillId) => {
+        setSelectedSkills(prev => {
+            if (prev.includes(skillId)) {
+                return prev.filter(id => id !== skillId);
+            } else {
+                return [...prev, skillId];
             }
         });
     };
@@ -122,8 +123,8 @@ const Recommendations = () => {
         // Фильтрация по выбранным навыкам
         if (selectedSkills.length > 0) {
             events = events.filter(event => {
-                const eventSkills = event.required_skills ? event.required_skills.split(',').map(s => s.trim()).filter(s => s) : [];
-                return selectedSkills.some(skill => eventSkills.includes(skill));
+                const eventSkillIds = event.required_skills ? event.required_skills.map(s => s.id) : [];
+                return selectedSkills.some(skillId => eventSkillIds.includes(skillId));
             });
         }
         
@@ -171,11 +172,11 @@ const Recommendations = () => {
                         <div className="skills-tags">
                             {Array.isArray(availableSkills) && availableSkills.map(skill => (
                                 <span 
-                                    key={skill} 
-                                    className={`skill-tag ${selectedSkills.includes(skill) ? 'active' : ''}`}
-                                    onClick={() => handleSkillToggle(skill)}
+                                    key={skill.id} 
+                                    className={`skill-tag ${selectedSkills.includes(skill.id) ? 'active' : ''}`}
+                                    onClick={() => handleSkillToggle(skill.id)}
                                 >
-                                    {skill}
+                                    {skill.name}
                                 </span>
                             ))}
                         </div>

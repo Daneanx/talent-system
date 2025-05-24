@@ -1,67 +1,106 @@
 .register-container {
-    padding: 40px 20px;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-  
-  .register-card {
-    border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
-    background-color: #fff;
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.register-card {
+    background-color: #ffffff;
+    border-radius: 15px;
     padding: 30px;
-    animation: fadeIn 0.5s ease-in;
-  }
-  
-  .register-title {
-    font-size: 2rem;
-    font-weight: 600;
-    color: var(--secondary-color);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.register-title {
     text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .form-label {
-    font-weight: 500;
-    color: var(--text-color);
-    margin-bottom: 8px;
-  }
-  
-  .form-control {
+    color: #343a40;
+    margin-bottom: 30px;
+}
+
+.form-label {
+    font-weight: bold;
+    color: #495057;
+}
+
+.form-control {
     border-radius: var(--button-radius);
     border: 1px solid #ddd;
     padding: 10px 15px;
     font-size: 0.9rem;
     transition: border-color 0.3s ease;
-  }
-  
-  .form-control:focus {
+}
+
+.form-control:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 5px rgba(224, 87, 72, 0.3);
-  }
-  
-  .btn-primary {
-    border-radius: var(--button-radius);
-    padding: 12px;
-    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
     width: 100%;
-    background-color: var(--primary-color);
-    border: none;
-  }
-  
-  .btn-primary:hover {
-    background-color: #c04738;
-  }
-  
-  .alert-danger {
-    border-radius: var(--border-radius);
+    padding: 10px;
+    font-size: 1.1em;
+    margin-top: 20px;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
+
+.alert-danger {
     margin-bottom: 20px;
-  }
-  
-  @media (max-width: 767px) {
+}
+
+.skills-selection {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #e9ecef;
+}
+
+.skill-tile {
+    background-color: #ffffff;
+    border: 1px solid #007bff;
+    color: #007bff;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-size: 0.9em;
+}
+
+.skill-tile:hover {
+    background-color: #e9ecef;
+}
+
+.skill-tile.selected {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.skill-tile.selected:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
     .register-card {
-      padding: 20px;
+        padding: 20px;
     }
+
     .register-title {
-      font-size: 1.5rem;
+        font-size: 1.8em;
     }
-  }
+
+    .btn-primary {
+        font-size: 1em;
+        padding: 8px;
+    }
+}

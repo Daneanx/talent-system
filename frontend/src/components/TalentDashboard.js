@@ -63,7 +63,7 @@ const TalentDashboard = () => {
     if (events.length > 1) {
       const intervalId = setInterval(() => {
         setAdvertIndex(prevIndex => (prevIndex + 1) % events.length);
-      }, 9000);
+      }, 12000);
 
       return () => clearInterval(intervalId);
     } else if (events.length === 1) {
@@ -81,6 +81,7 @@ const TalentDashboard = () => {
     localStorage.removeItem('userType');
     delete api.defaults.headers.common['Authorization'];
     navigate('/');
+    window.location.reload();
   };
 
   return (

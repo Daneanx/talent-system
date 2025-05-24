@@ -9,7 +9,7 @@ const EventDetail = () => {
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [userType, setUserType] = useState(localStorage.getItem('userType'));
+    const userType = localStorage.getItem('userType');
     const [message, setMessage] = useState('');
     const [applicationSuccess, setApplicationSuccess] = useState(false);
     const [applicationError, setApplicationError] = useState('');
@@ -45,7 +45,7 @@ const EventDetail = () => {
             // Преобразуем id в число, если он в виде строки
             const eventId = parseInt(id, 10);
             
-            const response = await api.post('api/applications/', {
+            await api.post('api/applications/', {
                 event_id: eventId, // Используем правильное имя поля event_id вместо event
                 message: message
             });
@@ -55,12 +55,29 @@ const EventDetail = () => {
             setMessage('');
         } catch (err) {
             console.error('Ошибка при подаче заявки:', err.response || err);
-            // Устанавливаем текст ошибки из ответа или общее сообщение
-            setApplicationError(
-                err.response?.data?.detail || 
-                err.response?.data?.error || 
-                'Ошибка при подаче заявки. Проверьте, что вы не подавали заявку ранее.'
-            );
+            console.log('Full error object:', err);
+            console.log('Error response data:', err.response?.data);
+            
+            // Устанавливаем текст ошибки из ответа бэкенда или общее сообщение
+            const errorMessage = err.response?.data?.detail || 
+                               err.response?.data?.error || 
+                               'Ошибка при подаче заявки. Проверьте, не подавали ли вы заявку ранее.';
+            
+            let finalErrorMessage = errorMessage;
+
+            // Попробуем извлечь сообщение из поля 'message' в ответе, если оно есть и является строкой с нужной подстрокой
+            if (err.response?.data?.message && typeof err.response.data.message === 'string') {
+                const messageString = err.response.data.message;
+                const detailMatch = messageString.match(/"detail":\s*"(.*?)"/);
+                if (detailMatch && detailMatch[1]) {
+                    finalErrorMessage = detailMatch[1];
+                } else {
+                    // Если detail не найдено в строке, используем всю строку message
+                    finalErrorMessage = messageString;
+                }
+            }
+
+            setApplicationError(finalErrorMessage);
         }
     };
 
@@ -76,15 +93,22 @@ const EventDetail = () => {
         }
     };
 
-    // Получение массива навыков
-    const getSkills = (skillsString) => {
-        if (!skillsString) return [];
-        return skillsString.split(',').map(skill => skill.trim());
+    // Получение массива названий навыков из массива объектов навыков
+    const getSkills = (requiredSkills) => {
+        // Проверяем, что requiredSkills является массивом
+        if (!Array.isArray(requiredSkills)) {
+            console.error('EventDetail: requiredSkills is not an array', requiredSkills);
+            return [];
+        }
+        // Извлекаем имя каждого навыка из объекта навыка
+        return requiredSkills.map(skill => skill.name);
     };
 
     if (loading) return <div className="text-center mt-5">Загрузка...</div>;
     if (error) return <div className="alert alert-danger mt-5 container">{error}</div>;
     if (!event) return <div className="alert alert-warning mt-5 container">Мероприятие не найдено</div>;
+
+    console.log('Rendering applicationError:', applicationError);
 
     return (
         <div className="event-detail-container container mt-5">
@@ -180,11 +204,10 @@ const EventDetail = () => {
                             </div>
                         ) : (
                             <>
-                                {applicationError && (
-                                    <div className="alert alert-danger">
-                                        {applicationError}
-                                    </div>
-                                )}
+                                {/* Отображаем ошибку подачи заявки */}
+                                <div className="alert alert-danger" style={{ display: applicationError ? 'block' : 'none' }}>
+                                    <p>{applicationError}</p>
+                                </div>
                                 
                                 {userType === 'talent' ? (
                                     <form onSubmit={handleApply}>
@@ -210,7 +233,7 @@ const EventDetail = () => {
                                     </form>
                                 ) : (
                                     <div className="alert alert-info">
-                                        Только таланты могут подавать заявки на участие в мероприятиях.
+                                        Только студенты с указанными навыками могут подавать заявки на участие в мероприятиях.
                                     </div>
                                 )}
                             </>

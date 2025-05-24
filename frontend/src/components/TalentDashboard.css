@@ -282,7 +282,7 @@
   font-size: var(--font-size-xl);
   color: var(--secondary-color);
   margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-md);
+  padding-bottom: 3%;
   border-bottom: 1px solid #eee;
   margin-left: var(--spacing-sm);
   margin-right: var(--spacing-sm);
@@ -302,7 +302,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  padding: var(--spacing-md);
+  padding: 1%;
   color: var(--text-color);
   text-decoration: none;
   font-size: var(--font-size-lg);
@@ -348,16 +348,17 @@
 }
 
 .main-content-title {
-  font-size: var(--font-size-3xl);
+  font-size: 25px;
   color: var(--secondary-color);
   margin-bottom: var(--spacing-xl);
+  padding-bottom: 2%;
 }
 
 .event-advert-container {
   position: relative;
   width: 101%;
-  padding-top: 40%;
-  background-color: #f0f0f0;
+  height: 350px;
+  background-color: #000;
   border-radius: var(--border-radius-lg);
   overflow: hidden;
   box-shadow: var(--card-shadow);
@@ -381,6 +382,8 @@
   object-fit: cover;
   position: relative;
   z-index: 1;
+  animation: slow-zoom 10s infinite alternate ease-in-out;
+  transform: scale(1);
 }
 
 .advert-content {
@@ -431,14 +434,16 @@
 
 /* Анимация смены рекламных блоков */
 @keyframes fadeInOut {
-  0% { opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { opacity: 0; }
+  0% { opacity: 0; }    /* Полностью прозрачный в начале */
+  10% { opacity: 0; }   /* Остается прозрачным */
+  20% { opacity: 1; }   /* Плавно появляется */
+  80% { opacity: 1; }   /* Полностью виден */
+  90% { opacity: 0; }   /* Плавно исчезает */
+  100% { opacity: 0; }  /* Полностью прозрачный в конце */
 }
 
 .event-advert.fade-in {
-  animation: fadeInOut 9s ease-in-out infinite;
+  animation: fadeInOut 12s ease-in-out infinite;
 }
 
 /* Стили для индикатора загрузки и сообщения об ошибке */
@@ -543,7 +548,7 @@
 
    .advert-content {
      position: relative;
-     width: 100%;
+     width: 101%;
      height: 40%;
      padding: var(--spacing-md);
      text-align: center;
@@ -568,5 +573,15 @@
    .advert-content p {
        font-size: var(--font-size-base);
    }
-} 
+}
+
+/* Анимация медленного увеличения изображения */
+@keyframes slow-zoom {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.05);
+  }
+}
 

@@ -78,12 +78,19 @@ const NavBar = ({ token, userType, setToken, setUserType }) => {
                                     <Link className="nav-link" to="/organizer/profile">Профиль</Link>
                                 </>
                             )}
-                            {showTalentNavButtons && (
+                            {token && userType !== 'organizer' && location.pathname !== '/dashboard' && (
                                 <>
-                                    <Link className="nav-link" to="/dashboard">Главная</Link>
-                                    <Link className="nav-link" to="/profile">Профиль</Link>
-                                    <Link className="nav-link" to="/faculty">Мой факультет</Link>
-                                    <Link className="nav-link" to="/activity">Активность</Link>
+                                    <Link className="nav-link" to="/dashboard">
+                                        <i className="fas fa-home"></i> Перейти на главную
+                                    </Link>
+                                    <button className="btn btn-outline-danger ms-2 btn-sm" onClick={() => {
+                                        setToken('');
+                                        setUserType('');
+                                        localStorage.removeItem('token');
+                                        localStorage.removeItem('userType');
+                                    }}>
+                                        Выйти из аккаунта
+                                    </button>
                                 </>
                             )}
                         </>

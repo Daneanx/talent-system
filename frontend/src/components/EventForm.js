@@ -9,7 +9,7 @@ const EventForm = () => {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        required_skills: '',
+        required_skill_ids: [],
         date: '',
         location: '',
         image: null,
@@ -18,6 +18,7 @@ const EventForm = () => {
         faculty_ids: []
     });
     const [faculties, setFaculties] = useState([]);
+    const [availableSkills, setAvailableSkills] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [imagePreview, setImagePreview] = useState(null);
@@ -33,6 +34,17 @@ const EventForm = () => {
         }
     };
 
+    const fetchSkills = async () => {
+        try {
+            const response = await api.get('api/skills/');
+            console.log('Получены навыки:', response.data);
+            setAvailableSkills(response.data.results);
+        } catch (err) {
+            console.error('Ошибка загрузки навыков:', err);
+            setError('Не удалось загрузить список навыков');
+        }
+    };
+
     const fetchEvent = useCallback(async () => {
         try {
             const response = await api.get(`api/events/${id}/`);
@@ -40,7 +52,8 @@ const EventForm = () => {
             setFormData({
                 ...event,
                 date: event.date.split('T')[0],
-                faculty_ids: event.faculties.map(f => f.id)
+                faculty_ids: event.faculties.map(f => f.id),
+                required_skill_ids: event.required_skills.map(s => s.id)
             });
             if (event.image) {
                 setImagePreview(event.image);
@@ -55,6 +68,7 @@ const EventForm = () => {
 
     useEffect(() => {
         fetchFaculties();
+        fetchSkills();
         if (id) {
             fetchEvent();
         } else {
@@ -80,6 +94,9 @@ const EventForm = () => {
         } else if (name === 'faculty_ids') {
             const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
             setFormData(prev => ({ ...prev, faculty_ids: selectedOptions }));
+        } else if (name === 'required_skill_ids') {
+            const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+            setFormData(prev => ({ ...prev, required_skill_ids: selectedOptions }));
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
@@ -96,9 +113,13 @@ const EventForm = () => {
                     formData[key].forEach(id => {
                         formDataToSend.append('faculty_ids', id);
                     });
+                } else if (key === 'required_skill_ids') {
+                    formData[key].forEach(id => {
+                        formDataToSend.append('required_skill_ids', id);
+                    });
                 } else if (key === 'image' && formData[key]) {
                     formDataToSend.append('image', formData[key]);
-                } else if (key !== 'faculties') {
+                } else if (key !== 'faculties' && key !== 'required_skills') {
                     formDataToSend.append(key, formData[key]);
                 }
             });
@@ -159,15 +180,24 @@ const EventForm = () => {
                                 </div>
 
                                 <div className="mb-3">
-                                    <label className="form-label">Требуемые навыки (через запятую)</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="required_skills"
-                                        value={formData.required_skills}
+                                    <label className="form-label">Требуемые навыки</label>
+                                    <select
+                                        className="form-select"
+                                        name="required_skill_ids"
+                                        multiple
+                                        value={formData.required_skill_ids}
                                         onChange={handleChange}
                                         required
-                                    />
+                                    >
+                                        {Array.isArray(availableSkills) && availableSkills.map(skill => (
+                                            <option key={skill.id} value={skill.id}>
+                                                {skill.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <small className="form-text text-muted">
+                                        Удерживайте Ctrl (Cmd на Mac) для выбора нескольких навыков
+                                    </small>
                                 </div>
 
                                 <div className="mb-3">
@@ -253,26 +283,9 @@ const EventForm = () => {
                                     </div>
                                 )}
 
-                                <div className="mb-3">
-                                    <label className="form-label">Статус</label>
-                                    <select
-                                        className="form-select"
-                                        name="status"
-                                        value={formData.status}
-                                        onChange={handleChange}
-                                    >
-                                        <option value="draft">Черновик</option>
-                                        <option value="published">Опубликовано</option>
-                                        <option value="closed">Закрыто</option>
-                                        <option value="cancelled">Отменено</option>
-                                    </select>
-                                </div>
-
-                                <div className="d-flex justify-content-end">
-                                    <button type="submit" className="btn btn-primary">
-                                        {id ? 'Сохранить изменения' : 'Создать мероприятие'}
-                                    </button>
-                                </div>
+                                <button type="submit" className="btn btn-primary w-100">
+                                    {id ? 'Сохранить изменения' : 'Создать мероприятие'}
+                                </button>
                             </form>
                         </div>
                     </div>
