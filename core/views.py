@@ -1,20 +1,22 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.views import APIView # Импортируем APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView # Для создания эндпоинта для логина
 from .models import TalentProfile, OrganizerProfile, Event, Application, Faculty
 from .serializers import (UserSerializer, TalentProfileSerializer, OrganizerProfileSerializer, 
                         EventSerializer, ApplicationSerializer, FacultySerializer)
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.contrib.auth import authenticate
 from django_filters.rest_framework import DjangoFilterBackend
 from functools import reduce
 import operator
 from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 from rest_framework import serializers
+from collections import Counter # Импортируем Counter для подсчета навыков
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
@@ -491,3 +493,92 @@ class RecommendationView(ListAPIView):
         except Exception as e:
             print(f"Ошибка при получении рекомендаций: {str(e)}")
             return Event.objects.none()
+
+class FacultyStatsView(APIView): # Меняем с RetrieveAPIView на APIView
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, *args, **kwargs):
+        try:
+            # Получаем профиль текущего пользователя
+            talent_profile = request.user.talent_profile
+            
+            if not talent_profile or not talent_profile.faculty:
+                return Response({
+                    'faculty': None,
+                    'message': 'Нет информации',
+                    'stats': {
+                        'total_users': 0,
+                        'total_applications': 0
+                    }
+                })
+            
+            faculty = talent_profile.faculty
+            
+            # Получаем статистику
+            total_users = TalentProfile.objects.filter(faculty=faculty).count()
+            
+            # Получаем все заявки от пользователей данного факультета
+            faculty_users = TalentProfile.objects.filter(faculty=faculty).values_list('user_id', flat=True)
+            total_applications = Application.objects.filter(user_id__in=faculty_users).count()
+            
+            return Response({
+                'faculty': {
+                    'id': faculty.id,
+                    'name': faculty.name,
+                    'short_name': faculty.short_name,
+                    'description': faculty.description
+                },
+                'stats': {
+                    'total_users': total_users,
+                    'total_applications': total_applications
+                }
+            })
+            
+        except Exception as e:
+            return Response({
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UserActivityStatsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user = request.user
+
+            # Проверяем, является ли пользователь талантом
+            if not hasattr(user, 'talent_profile'):
+                 return Response({
+                     'message': 'Эта страница доступна только для пользователей-талантов.'
+                 }, status=status.HTTP_403_FORBIDDEN)
+
+            # Общее количество поданных заявок
+            total_applications = Application.objects.filter(user=user).count()
+
+            # Количество одобренных заявок
+            approved_applications = Application.objects.filter(user=user, status='approved').count()
+
+            # Статистика по навыкам из мероприятий, на которые пользователь подал заявку
+            # Получаем мероприятия, на которые пользователь подал заявку
+            applied_events = Event.objects.filter(application__user=user)
+
+            skill_list = []
+            for event in applied_events:
+                if event.required_skills:
+                    # Разделяем навыки по запятой и добавляем в список, убирая пробелы и пустые строки
+                    skills = [s.strip() for s in event.required_skills.split(',') if s.strip()]
+                    skill_list.extend(skills)
+
+            # Подсчитываем частоту каждого навыка
+            skill_counts = dict(Counter(skill_list))
+
+            return Response({
+                'total_applications': total_applications,
+                'approved_applications': approved_applications,
+                'skill_stats': skill_counts
+            })
+
+        except Exception as e:
+            return Response({
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
