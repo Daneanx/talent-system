@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import PropTypes from 'prop-types';
 import './Login.css';
 
 const Login = ({ setToken, setUserType }) => {
@@ -37,7 +38,7 @@ const Login = ({ setToken, setUserType }) => {
       localStorage.setItem('userType', response.data.userType);
       api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
 
-      navigate(response.data.userType === 'organizer' ? '/organizer/dashboard' : '/recommendations');
+      navigate(response.data.userType === 'organizer' ? '/organizer/dashboard' : '/dashboard');
     } catch (err) {
       console.error('Ошибка входа:', err);
       setError(err.response?.data?.error || 'Ошибка при входе');
@@ -97,6 +98,11 @@ const Login = ({ setToken, setUserType }) => {
       </div>
     </div>
   );
+};
+
+Login.propTypes = {
+  setToken: PropTypes.func.isRequired,
+  setUserType: PropTypes.func.isRequired
 };
 
 export default Login;

@@ -1,14 +1,49 @@
 /* Общие стили для всего приложения */
 :root {
+  /* Основные цвета */
   --primary-color: #e05748;
+  --primary-hover: #c04738;
   --secondary-color: #2c3e50;
+  --secondary-hover: #1a252f;
   --background-color: #f5f5f5;
   --text-color: #333;
+  --text-light: #666;
+  --text-lighter: #999;
+  
+  /* Тени */
   --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  --hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  --button-shadow: 0 2px 8px rgba(224, 87, 72, 0.2);
+  
+  /* Скругления */
+  --border-radius-sm: 8px;
   --border-radius: 16px;
   --button-radius: 20px;
+  
+  /* Анимации */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  /* Размеры шрифтов */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  
+  /* Отступы */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
 }
 
+/* Базовые стили */
 body {
   margin: 0;
   font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -16,18 +51,48 @@ body {
   -moz-osx-font-smoothing: grayscale;
   color: var(--text-color);
   background-color: var(--background-color);
+  line-height: 1.5;
+  font-size: var(--font-size-base);
 }
 
-/* Стили для навигационной панели */
+/* Типографика */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 var(--spacing-md);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--secondary-color);
+}
+
+h1 { font-size: var(--font-size-3xl); }
+h2 { font-size: var(--font-size-2xl); }
+h3 { font-size: var(--font-size-xl); }
+h4 { font-size: var(--font-size-lg); }
+
+/* Навигация */
 .navbar {
-  padding: 15px 0;
+  padding: var(--spacing-md) 0;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  background-color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: all var(--transition-normal);
+}
+
+.navbar.scrolled {
+  padding: var(--spacing-sm) 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .navbar-brand {
-  font-size: 1.5rem;
+  font-size: var(--font-size-2xl);
   font-weight: 600;
   color: var(--primary-color) !important;
+  transition: color var(--transition-fast);
+}
+
+.navbar-brand:hover {
+  color: var(--primary-hover) !important;
 }
 
 .navbar-nav {
@@ -38,12 +103,24 @@ body {
 .nav-link {
   color: var(--secondary-color) !important;
   font-weight: 500;
-  margin: 0 10px;
-  transition: color 0.3s ease;
+  margin: 0 var(--spacing-md);
+  transition: all var(--transition-fast);
+  position: relative;
 }
 
-.nav-link:hover {
-  color: var(--primary-color) !important;
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--primary-color);
+  transition: width var(--transition-fast);
+}
+
+.nav-link:hover::after {
+  width: 100%;
 }
 
 /* Стили для выпадающего меню */
@@ -91,17 +168,45 @@ body {
   color: var(--primary-color);
 }
 
-/* Стили для кнопок */
+/* Кнопки */
+.btn {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--button-radius);
+  font-weight: 500;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn:active::after {
+  width: 200%;
+  height: 200%;
+}
+
 .btn-primary {
   background-color: var(--primary-color);
   border-color: var(--primary-color);
-  border-radius: var(--button-radius);
-  padding: 8px 16px;
+  box-shadow: var(--button-shadow);
 }
 
 .btn-primary:hover {
-  background-color: #c04738;
-  border-color: #c04738;
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(224, 87, 72, 0.3);
 }
 
 .btn-outline-danger {
@@ -121,23 +226,125 @@ body {
   border-radius: var(--border-radius);
   border: none;
   box-shadow: var(--card-shadow);
-  margin-bottom: 20px;
-  transition: transform 0.3s ease;
+  margin-bottom: var(--spacing-lg);
+  transition: all var(--transition-normal);
+  background-color: white;
+  overflow: hidden;
 }
 
 .card:hover {
   transform: translateY(-5px);
+  box-shadow: var(--hover-shadow);
 }
 
 .card-body {
-  padding: 20px;
+  padding: var(--spacing-lg);
 }
 
 .card-title {
   font-weight: 600;
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-md);
   color: var(--secondary-color);
+}
+
+/* Формы */
+.form-control {
+  border-radius: var(--border-radius-sm);
+  border: 1px solid #ddd;
+  padding: var(--spacing-sm) var(--spacing-md);
+  transition: all var(--transition-fast);
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(224, 87, 72, 0.1);
+}
+
+/* Адаптивность */
+@media (max-width: 1200px) {
+  :root {
+    --font-size-3xl: 1.75rem;
+    --font-size-2xl: 1.35rem;
+    --font-size-xl: 1.15rem;
   }
+  
+  .container {
+    max-width: 960px;
+  }
+}
+
+@media (max-width: 992px) {
+  :root {
+    --font-size-3xl: 1.5rem;
+    --font-size-2xl: 1.25rem;
+  }
+  
+  .container {
+    max-width: 720px;
+  }
+  
+  .navbar-nav {
+    padding: var(--spacing-md) 0;
+  }
+  
+  .nav-link {
+    margin: var(--spacing-sm) 0;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --spacing-xl: 1.5rem;
+    --spacing-2xl: 2rem;
+  }
+  
+  .container {
+    max-width: 540px;
+  }
+  
+  .card {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .btn {
+    width: 100%;
+    margin-bottom: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 576px) {
+  :root {
+    --font-size-base: 0.9375rem;
+    --spacing-lg: 1.25rem;
+  }
+  
+  .container {
+    padding: var(--spacing-sm);
+  }
+  
+  .card-body {
+    padding: var(--spacing-md);
+  }
+}
+
+/* Анимации */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn var(--transition-normal);
+}
+
+.slide-up {
+  animation: slideUp var(--transition-normal);
+}
 
 /* Утилиты */
 .container {
@@ -149,22 +356,117 @@ body {
   text-align: center;
 }
 
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.mt-1 {
+  margin-top: var(--spacing-xs);
+}
+
+.mt-2 {
+  margin-top: var(--spacing-sm);
+}
+
 .mt-3 {
-  margin-top: 15px;
+  margin-top: var(--spacing-md);
 }
 
 .mt-4 {
-  margin-top: 20px;
+  margin-top: var(--spacing-lg);
 }
 
 .mt-5 {
-  margin-top: 25px;
+  margin-top: var(--spacing-xl);
+}
+
+.mb-1 {
+  margin-bottom: var(--spacing-xs);
+}
+
+.mb-2 {
+  margin-bottom: var(--spacing-sm);
 }
 
 .mb-3 {
-  margin-bottom: 15px;
-  }
+  margin-bottom: var(--spacing-md);
+}
 
 .mb-4 {
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
+}
+
+.mb-5 {
+  margin-bottom: var(--spacing-xl);
+}
+
+/* Доступность */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Улучшенная читаемость */
+p {
+  max-width: 65ch;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Улучшенные состояния наведения и фокуса */
+a, button {
+  transition: all var(--transition-fast);
+}
+
+a:hover, button:hover {
+  opacity: 0.9;
+}
+
+/* Улучшенные состояния загрузки */
+.loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid var(--primary-color);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

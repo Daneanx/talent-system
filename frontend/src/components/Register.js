@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import PropTypes from 'prop-types';
 import './Register.css'; // Новый CSS-файл
 
 const AGU_FACULTIES = [
@@ -292,6 +293,11 @@ const Register = ({ setToken, setUserType }) => {
       </div>
     </div>
   );
+};
+
+Register.propTypes = {
+  setToken: PropTypes.func.isRequired,
+  setUserType: PropTypes.func.isRequired
 };
 
 export default Register;

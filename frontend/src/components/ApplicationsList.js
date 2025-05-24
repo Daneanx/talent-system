@@ -69,7 +69,9 @@ const ApplicationsList = () => {
 
             {applications.length === 0 ? (
                 <div className="alert alert-info">
-                    <p>У вас пока нет поданных заявок. Вы можете найти интересные мероприятия в разделе "Рекомендации".</p>
+                    <p className="no-applications-message">
+                        У вас пока нет заявок на мероприятия. Посетите раздел &quot;Рекомендации&quot;, чтобы найти интересные мероприятия!
+                    </p>
                     <button 
                         className="btn btn-primary" 
                         onClick={() => navigate('/recommendations')}

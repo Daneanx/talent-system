@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Login from './components/Login';
 import Register from './components/Register';
 import OrganizerRegister from './components/OrganizerRegister';
 import Profile from './components/Profile';
 import OrganizerProfile from './components/OrganizerProfile';
 import OrganizerDashboard from './components/OrganizerDashboard';
+import TalentDashboard from './components/TalentDashboard';
 import EventForm from './components/EventForm';
 import EventDetail from './components/EventDetail';
 import Recommendations from './components/Recommendations';
 import ApplicationsList from './components/ApplicationsList';
 import TalentProfileView from './components/TalentProfileView';
+import FacultyStats from './components/FacultyStats';
+import UserActivity from './components/UserActivity';
+import NavBar from './components/NavBar';
 import api from './api';
 
 const App = () => {
     const [token, setToken] = useState(localStorage.getItem('token') || '');
     const [userType, setUserType] = useState(localStorage.getItem('userType') || '');
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     useEffect(() => {
         // Проверяет токен и тип пользователя при загрузке и изменении
@@ -49,99 +52,18 @@ const App = () => {
         }
     }, [token, userType]);
 
-    const handleLogout = () => {
-        setToken('');
-        setUserType('');
-        localStorage.removeItem('token');
-        localStorage.removeItem('userType');
-        delete api.defaults.headers.common['Authorization'];
-    };
-
-    const toggleDropdown = () => {
-        setIsDropdownOpen(!isDropdownOpen);
-    };
-
-    // Закрывается dropdown при клике вне его
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (!event.target.closest('.dropdown')) {
-                setIsDropdownOpen(false);
-            }
-        };
-
-        document.addEventListener('click', handleClickOutside);
-        return () => {
-            document.removeEventListener('click', handleClickOutside);
-        };
-    }, []);
-
     return (
         <Router>
             <div>
-                <nav className="navbar navbar-expand-lg navbar-light bg-light">
-                    <div className="container-fluid">
-                        <Link className="navbar-brand" to="/">Talent System</Link>
-                        <div className="navbar-nav">
-                            {!token ? (
-                                <>
-                                    <Link className="nav-link" to="/">Вход</Link>
-                                    <div className="nav-item dropdown">
-                                        <button 
-                                            className={`nav-link dropdown-toggle ${isDropdownOpen ? 'show' : ''}`}
-                                            onClick={toggleDropdown}
-                                            style={{ background: 'none', border: 'none' }}
-                                        >
-                                            Регистрация
-                                        </button>
-                                        <ul className={`dropdown-menu ${isDropdownOpen ? 'show' : ''}`} style={{
-                                            display: isDropdownOpen ? 'block' : 'none'
-                                        }}>
-                                            <li>
-                                                <Link 
-                                                    className="dropdown-item" 
-                                                    to="/register"
-                                                    onClick={() => setIsDropdownOpen(false)}
-                                                >
-                                                    Регистрация таланта
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link 
-                                                    className="dropdown-item" 
-                                                    to="/register/organizer"
-                                                    onClick={() => setIsDropdownOpen(false)}
-                                                >
-                                                    Регистрация организатора
-                                                </Link>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    {userType === 'organizer' ? (
-                                        <>
-                                            <Link className="nav-link" to="/organizer/dashboard">Панель управления</Link>
-                                            <Link className="nav-link" to="/organizer/profile">Профиль</Link>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Link className="nav-link" to="/profile">Профиль</Link>
-                                            <Link className="nav-link" to="/recommendations">Рекомендации</Link>
-                                            <Link className="nav-link" to="/applications">Мои заявки</Link>
-                                        </>
-                                    )}
-                                    <button className="btn btn-outline-danger ms-2" onClick={handleLogout}>
-                                        Выйти
-                                    </button>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </nav>
+                <NavBar 
+                    token={token} 
+                    userType={userType} 
+                    setToken={setToken} 
+                    setUserType={setUserType} 
+                />
                 <Routes>
                     <Route path="/" element={!token ? <Login setToken={setToken} setUserType={setUserType} /> : (
-                        userType === 'organizer' ? <OrganizerDashboard /> : <Recommendations />
+                        userType === 'organizer' ? <OrganizerDashboard /> : <TalentDashboard />
                     )} />
                     <Route path="/register" element={<Register setToken={setToken} setUserType={setUserType} />} />
                     <Route path="/register/organizer" element={<OrganizerRegister />} />
@@ -156,6 +78,10 @@ const App = () => {
                     <Route
                         path="/applications"
                         element={token && userType !== 'organizer' ? <ApplicationsList /> : <Login setToken={setToken} setUserType={setUserType} />}
+                    />
+                    <Route
+                        path="/dashboard"
+                        element={token && userType !== 'organizer' ? <TalentDashboard /> : <Login setToken={setToken} setUserType={setUserType} />}
                     />
                     <Route
                         path="/organizer/dashboard"
@@ -180,6 +106,14 @@ const App = () => {
                     <Route
                         path="/talents/:id"
                         element={token ? <TalentProfileView /> : <Login setToken={setToken} setUserType={setUserType} />}
+                    />
+                    <Route
+                        path="/faculty"
+                        element={token && userType !== 'organizer' ? <FacultyStats /> : <Login setToken={setToken} setUserType={setUserType} />}
+                    />
+                    <Route
+                        path="/activity"
+                        element={token && userType !== 'organizer' ? <UserActivity /> : <Login setToken={setToken} setUserType={setUserType} />}
                     />
                 </Routes>
             </div>
