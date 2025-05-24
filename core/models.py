@@ -17,6 +17,19 @@ class Faculty(models.Model):
     def __str__(self):
         return self.name
 
+# Skill содержит информацию о навыках.
+class Skill(models.Model):
+    name = models.CharField(max_length=100, unique=True, verbose_name="Название навыка")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Навык"
+        verbose_name_plural = "Навыки"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
 # TalentProfile хранит навыки и предпочтения таланта.
 class TalentProfile(models.Model):
     EDUCATION_LEVELS = [
@@ -26,7 +39,7 @@ class TalentProfile(models.Model):
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='talent_profile')
-    skills = models.TextField(blank=True, null=True)
+    skills = models.ManyToManyField(Skill, blank=True, verbose_name="Навыки")
     preferences = models.TextField(blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     faculty = models.ForeignKey(Faculty, on_delete=models.SET_NULL, null=True, verbose_name="Факультет")
@@ -75,7 +88,7 @@ class Event(models.Model):
     organizer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='events')
     title = models.CharField(max_length=200)
     description = models.TextField()
-    required_skills = models.TextField()
+    required_skills = models.ManyToManyField(Skill, related_name='events', verbose_name="Требуемые навыки")
     date = models.DateField()
     image = models.ImageField(upload_to='events/', null=True, blank=True)
     location = models.CharField(max_length=200)

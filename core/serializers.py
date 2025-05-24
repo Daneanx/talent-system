@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import TalentProfile, OrganizerProfile, Event, Application, Faculty
+from .models import TalentProfile, OrganizerProfile, Event, Application, Faculty, Skill
 from datetime import date
 import re
 
@@ -46,7 +46,12 @@ class UserSerializer(serializers.ModelSerializer):
 class FacultySerializer(serializers.ModelSerializer):
     class Meta:
         model = Faculty
-        fields = ['id', 'name', 'short_name', 'description']
+        fields = '__all__'
+
+class SkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Skill
+        fields = '__all__'
 
 class TalentProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=False)
@@ -55,6 +60,7 @@ class TalentProfileSerializer(serializers.ModelSerializer):
         queryset=Faculty.objects.all(),
         source='faculty',
         write_only=True,
+        allow_null=True,
         required=False
     )
     education_level_display = serializers.CharField(source='get_education_level_display', read_only=True)
@@ -64,20 +70,12 @@ class TalentProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name', required=False, allow_blank=True)
     last_name = serializers.CharField(source='user.last_name', required=False, allow_blank=True)
 
-    def validate_skills(self, value):
-        print(f"Проверяем навыки: {value}")  # Логирование
-        if value is None:
-            return ""
-        if not value.strip():
-            raise serializers.ValidationError("Поле навыков не может быть пустым.")
-        # Проверка на наличие разделения навыков запятыми и на отсутствие некорректных символов
-        skills = [skill.strip() for skill in value.split(',')]
-        if not all(skill for skill in skills):
-            raise serializers.ValidationError("Навыки должны быть разделены запятыми без пустых значений.")
-        print(f"Входные данные навыков (сырые): {value}")
-        if not all(re.match(r'^[a-zA-Zа-яА-ЯёЁ0-9\s]+$', skill) for skill in skills):
-            raise serializers.ValidationError("Навыки могут содержать только буквы, цифры и пробелы.")
-        return ', '.join(skills)
+    # Явно определяем поле skills как ManyToManyField с PrimaryKeyRelatedField
+    skills = serializers.PrimaryKeyRelatedField(
+        queryset=Skill.objects.all(),
+        many=True,
+        required=False
+    )
 
     def validate_preferences(self, value):
         if value and not re.match(r'^[a-zA-Zа-яА-ЯёЁ0-9\s,]+$', value):
@@ -88,34 +86,25 @@ class TalentProfileSerializer(serializers.ModelSerializer):
         print(f"TalentProfileSerializer update: Instance -> {instance}")
         print(f"TalentProfileSerializer update: Validated data -> {validated_data}")
 
-        # Извлекаем вложенные данные пользователя, если они присутствуют
+        # Извлекаем данные навыков и пользователя
+        skills_data = validated_data.pop('skills', None)
         user_data = validated_data.pop('user', None)
 
-        # Обновляем поля TalentProfile
+        # Обновляем поля TalentProfile (кроме навыков, которые обрабатываются отдельно)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
         # Сохраняем изменения профиля таланта
         instance.save()
 
+        # Если данные навыков присутствуют, обновляем связи многие-ко-многим
+        if skills_data is not None:
+            instance.skills.set(skills_data)
+
         # Если данные пользователя присутствуют, обновляем связанный объект User
         if user_data:
-            # Получаем сериализатор для связанного пользователя
             user_serializer = self.fields['user']
-            # Передаем только те данные пользователя, которые пришли в запросе
             user_serializer.update(instance.user, user_data)
-
-        # Примечание: При использовании multipart/form-data, фронтенд может отправлять поля
-        # first_name и last_name не как вложенный объект user, а на верхнем уровне.
-        # В этом случае, логика обновления пользователя выше не сработает.
-        # Если это так, необходимо будет обрабатывать эти поля на верхнем уровне здесь.
-        # Например:
-        # if 'first_name' in validated_data:
-        #     instance.user.first_name = validated_data['first_name']
-        # if 'last_name' in validated_data:
-        #     instance.user.last_name = validated_data['last_name']
-        # instance.user.save()
-        # Однако, с UserSerializer(read_only=False), вложенный подход предпочтительнее.
 
         print(f"TalentProfileSerializer update: Profile after save -> {instance.avatar.name if instance.avatar else 'No avatar'}")
         return instance
@@ -171,6 +160,17 @@ class EventSerializer(serializers.ModelSerializer):
         required=False,
         source='faculties'
     )
+    required_skills = SkillSerializer(many=True, read_only=True)
+    required_skill_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Skill.objects.all(),
+        many=True,
+        write_only=True,
+        required=False,
+        source='required_skills'
+    )
+
+    # Новое поле для статуса заявки текущего пользователя
+    user_application_status = serializers.SerializerMethodField()
 
     def get_applications_count(self, obj):
         return obj.application_set.count()
@@ -180,16 +180,6 @@ class EventSerializer(serializers.ModelSerializer):
             return obj.organizer.organizerprofile.organization_name
         except OrganizerProfile.DoesNotExist:
             return None
-
-    def validate_required_skills(self, value):
-        if not value.strip():
-            raise serializers.ValidationError("Поле требуемых навыков не может быть пустым.")
-        skills = [skill.strip() for skill in value.split(',')]
-        if not all(skill for skill in skills):
-            raise serializers.ValidationError("Навыки должны быть разделены запятыми без пустых значений.")
-        if not all(re.match(r'^[a-zA-Zа-яА-ЯёЁ0-9\s]+$', skill) for skill in skills):
-            raise serializers.ValidationError("Навыки могут содержать только буквы, цифры и пробелы.")
-        return ', '.join(skills)
 
     def validate_date(self, value):
         if value < date.today():
@@ -203,13 +193,26 @@ class EventSerializer(serializers.ModelSerializer):
             )
         return data
 
+    def get_user_application_status(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            try:
+                # Пробуем найти заявку текущего пользователя на это мероприятие
+                application = obj.application_set.get(user=request.user)
+                return application.status # Возвращаем статус заявки
+            except Application.DoesNotExist:
+                return None # Если заявки нет, возвращаем null
+        return None # Если пользователь не аутентифицирован, возвращаем null
+
     class Meta:
         model = Event
-        fields = ['id', 'organizer', 'organization_name', 'title', 'description', 
-                 'required_skills', 'date', 'image', 'location', 'status', 
-                 'created_at', 'updated_at', 'applications_count', 'faculty_restriction',
-                 'faculties', 'faculty_ids']
-        read_only_fields = ['id', 'organizer', 'created_at', 'updated_at']
+        fields = [
+            'id', 'organizer', 'organization_name', 'title', 'description',
+            'required_skills', 'required_skill_ids', 'date', 'image', 'location', 'status',
+            'created_at', 'updated_at', 'applications_count', 'faculty_restriction',
+            'faculties', 'faculty_ids', 'user_application_status' # Добавляем новое поле
+        ]
+        read_only_fields = ['id', 'organizer', 'created_at', 'updated_at', 'user_application_status']
 
 class ApplicationSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)

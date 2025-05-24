@@ -6,9 +6,9 @@ from rest_framework.views import APIView # Импортируем APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView # Для создания эндпоинта для логина
-from .models import TalentProfile, OrganizerProfile, Event, Application, Faculty
+from .models import TalentProfile, OrganizerProfile, Event, Application, Faculty, Skill # Импортируем Skill
 from .serializers import (UserSerializer, TalentProfileSerializer, OrganizerProfileSerializer, 
-                        EventSerializer, ApplicationSerializer, FacultySerializer)
+                        EventSerializer, ApplicationSerializer, FacultySerializer, SkillSerializer) # Импортируем SkillSerializer
 from django.db.models import Q, Count
 from django.contrib.auth import authenticate
 from django_filters.rest_framework import DjangoFilterBackend
@@ -182,7 +182,7 @@ def create_application(request):
         ).exists()
         
         if existing_application:
-            return Response({"detail": "Вы уже подали заявку на это мероприятие"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Вы уже подали заявку на это мероприятие"}, status=status.HTTP_400_BAD_REQUEST)
         
         # Создаем сериализатор для валидации и сохранения
         serializer = ApplicationSerializer(data=request.data)
@@ -429,69 +429,31 @@ class RecommendationView(ListAPIView):
 
     def get_queryset(self):
         try:
-            profile = TalentProfile.objects.get(user=self.request.user)
+            # Получаем профиль таланта текущего пользователя
+            talent_profile = self.request.user.talent_profile
             
-            # Проверяем, что навыки не пустые
-            if not profile.skills or not profile.skills.strip():
-                print(f"У пользователя {self.request.user.username} нет навыков")
-                # Если навыков нет, возвращаем мероприятия, не ограниченные по факультетам
-                return Event.objects.filter(status='published', faculty_restriction=False).order_by('-date')
+            # Получаем навыки таланта
+            talent_skills = set(talent_profile.skills.all())
             
-            user_skills = set(s.strip().lower() for s in profile.skills.split(',') if s.strip())
+            # Получаем все опубликованные мероприятия
             events = Event.objects.filter(status='published')
-            matched_events = []
-
-            for event in events:
-                # Проверяем соответствие факультета, если ограничение включено
-                if event.faculty_restriction:
-                    # Проверяем, существует ли факультет у пользователя и входит ли он в список доступных
-                    if profile.faculty is None or profile.faculty not in event.faculties.all():
-                        continue # Пропускаем мероприятие, если факультет не соответствует
-                
-                # Проверяем, что требуемые навыки не пустые, если мероприятие не ограничено по факультету
-                # или у пользователя нет навыков, но мероприятие не имеет ограничений по факультетам.
-                # Если мероприятие ограничено по факультетам и факультет соответствует, навыки все равно проверяются.
-                
-                # Если у мероприятия нет требуемых навыков, оно не может быть рекомендовано по навыкам
-                if not event.required_skills or not event.required_skills.strip():
-                     # Но если оно не ограничено по факультетам, мы все равно можем его показать, если у пользователя нет навыков
-                     if not event.faculty_restriction and (not profile.skills or not profile.skills.strip()):
-                          matched_events.append(event.id) # Добавляем, если нет ограничений и нет навыков у пользователя
-                     continue # Пропускаем, если есть требуемые навыки, но их нет у пользователя
-                
-                required_skills = set(s.strip().lower() for s in event.required_skills.split(',') if s.strip())
-                common_skills = user_skills.intersection(required_skills)
-                
-                # Рекомендуем мероприятие, если у пользователя есть хотя бы один из требуемых навыков
-                # и оно прошло проверку факультета
-                if common_skills:
-                    match_percentage = len(common_skills) / len(required_skills) if required_skills else 0
-                    # Снижаем порог до 30%
-                    if match_percentage >= 0.3:
-                        matched_events.append(event.id)
-
-            # Убедимся, что в рекомендациях нет дубликатов и они отсортированы
-            recommended_events_queryset = Event.objects.filter(id__in=list(set(matched_events))).order_by('-date')
-
-            # Если у пользователя нет навыков, мы уже вернули только нефакультетские мероприятия выше
-            # Если навыки есть, добавляем к рекомендациям мероприятия без ограничений по факультетам,
-            # которые могли не пройти порог по навыкам, но могут быть интересны.
-            if profile.skills and profile.skills.strip():
-                 non_restricted_events = Event.objects.filter(status='published', faculty_restriction=False).exclude(id__in=matched_events).order_by('-date')
-                 # Объединяем queryset'ы. Это может быть неэффективно для очень больших данных, но для начала подойдет.
-                 # В более продвинутой реализации можно использовать Union.
-                 combined_queryset = list(recommended_events_queryset) + list(non_restricted_events)
-                 # Сортируем объединенный список по дате
-                 combined_queryset.sort(key=lambda x: x.date, reverse=True)
-                 return Event.objects.filter(id__in=[event.id for event in combined_queryset]) # Возвращаем queryset из ID
             
-            return recommended_events_queryset # Если навыков нет, возвращаем только те, что прошли проверку выше
-
+            # Фильтруем мероприятия по навыкам
+            recommended_events = []
+            for event in events:
+                # Получаем навыки мероприятия
+                event_skills = set(event.required_skills.all())
+                
+                # Если есть пересечение навыков, добавляем мероприятие в рекомендации
+                if talent_skills & event_skills:
+                    recommended_events.append(event)
+            
+            return recommended_events
+            
         except TalentProfile.DoesNotExist:
-            # Если у пользователя нет профиля таланта, показываем все нефакультетские опубликованные мероприятия
-            return Event.objects.filter(status='published', faculty_restriction=False).order_by('-date')
+            return Event.objects.none()
         except Exception as e:
-            print(f"Ошибка при получении рекомендаций: {str(e)}")
+            print(f"Ошибка в RecommendationView.get_queryset: {str(e)}")
             return Event.objects.none()
 
 class FacultyStatsView(APIView): # Меняем с RetrieveAPIView на APIView
@@ -564,10 +526,10 @@ class UserActivityStatsView(APIView):
 
             skill_list = []
             for event in applied_events:
-                if event.required_skills:
-                    # Разделяем навыки по запятой и добавляем в список, убирая пробелы и пустые строки
-                    skills = [s.strip() for s in event.required_skills.split(',') if s.strip()]
-                    skill_list.extend(skills)
+                # Проверяем, есть ли связанные навыки
+                if event.required_skills.exists():
+                    # Получаем названия связанных навыков и добавляем их в skill_list
+                    skill_list.extend(event.required_skills.values_list('name', flat=True))
 
             # Подсчитываем частоту каждого навыка
             skill_counts = dict(Counter(skill_list))
@@ -582,3 +544,17 @@ class UserActivityStatsView(APIView):
             return Response({
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SkillViewSet(viewsets.ModelViewSet):
+    queryset = Skill.objects.all().order_by('name')
+    serializer_class = SkillSerializer
+    # Разрешаем чтение всем, но создание/обновление/удаление только админам и организаторам
+    permission_classes = [AllowAny]
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            # Проверяем, является ли пользователь администратором или организатором
+            if self.request.user.is_authenticated and (self.request.user.is_staff or hasattr(self.request.user, 'organizerprofile')):
+                return [permissions.IsAuthenticated()]
+            return [permissions.IsAdminUser()] # Только админ имеет полные права
+        return [AllowAny()] # Чтение разрешено всем
