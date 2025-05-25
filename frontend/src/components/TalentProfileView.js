@@ -78,48 +78,84 @@ const TalentProfileView = () => {
     if (!profile) return <div className="alert alert-warning mt-3">Профиль таланта не найден</div>;
 
     return (
-        <div className="container mt-5">
+        <div className="container profile-container mt-5">
             <div className="row justify-content-center">
                 <div className="col-md-8">
-                    <div className="card profile-card">
+                    <div className="card shadow-sm profile-card">
                         <div className="card-body">
-                            <div className="d-flex justify-content-between align-items-center mb-4">
-                                <h2 className="card-title">Профиль таланта</h2>
+                            <div className="profile-header-row mb-4 d-flex justify-content-between align-items-center">
+                                <h2 className="card-title mb-0 profile-title">Профиль таланта</h2>
+                                {/* Кнопка редактирования здесь не нужна для организатора */}
                             </div>
                             
-                            <div className="profile-header mb-4">
-                                <h3>{user.username}</h3>
-                                <p className="text-muted">{user.email}</p>
-                            </div>
-                            
-                            <div className="mb-4">
-                                <h5>Навыки:</h5>
-                                <div className="skills-container">
-                                    {profile.skills.split(',').map((skill, index) => (
-                                        <span key={index} className="skill-badge">
-                                            {skill.trim()}
-                                        </span>
-                                    ))}
+                            {/* Сообщения об успехе/ошибке редактирования здесь не нужны */}
+
+                            <div className="profile-content">
+                                <div className="profile-header text-center mb-4">
+                                    <div className="avatar-container mb-3 position-relative">
+                                        {profile.avatar ? (
+                                            <img
+                                                src={profile.avatar}
+                                                alt="Аватар"
+                                                className="avatar-image"
+                                                style={{
+                                                    width: 150,
+                                                    height: 150,
+                                                    borderRadius: '50%',
+                                                    objectFit: 'cover',
+                                                    border: '3px solid #eee',
+                                                    transition: 'all 0.3s ease'
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className="avatar-placeholder d-flex justify-content-center align-items-center" style={{
+                                                width: 150,
+                                                height: 150,
+                                                borderRadius: '50%',
+                                                border: '3px solid #eee',
+                                                transition: 'all 0.3s ease'
+                                            }}>
+                                                {/* Можно добавить иконку пользователя или текст */}
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* Отображаем полное имя, если доступно, иначе username */}
+                                    <h3>{user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.username}</h3>
+                                    <p className="text-muted">{user.email}</p>
                                 </div>
                             </div>
                             
-                            <div className="mb-4">
-                                <h5>Предпочтения:</h5>
-                                <div className="skills-container">
-                                    {profile.preferences
-                                        ? profile.preferences.split(',').map((pref, index) => (
-                                            <span key={index} className="preference-badge">
-                                                {pref.trim()}
-                                            </span>
-                                        ))
-                                        : <p className="text-muted">Не указаны</p>
-                                    }
+                            <div className="profile-details">
+                                {/* Секция Навыков */}
+                                <div className="mb-3">
+                                    <label className="form-label">Навыки:</label>
+                                    <div className="skills-container">
+                                        {profile.skills && Array.isArray(profile.skills) && profile.skills.length > 0 ? (
+                                            profile.skills.map((skill, index) => (
+                                                <span key={index} className="skill-badge">
+                                                    {/* Предполагаем, что объект навыка имеет поле 'name' */}
+                                                    {skill.name || skill}
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <p className="text-muted">Навыки не указаны</p>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <div className="mb-4">
-                                <h5>О себе:</h5>
-                                <div className="bio-container">
+                                
+                                {/* Секция Предпочтений */}
+                                <div className="mb-3">
+                                     <label className="form-label">Предпочтения:</label>
+                                    {profile.preferences ? (
+                                        <p>{profile.preferences}</p>
+                                    ) : (
+                                        <p className="text-muted">Не указаны</p>
+                                    )}
+                                </div>
+                                
+                                {/* Секция О себе */}
+                                <div className="mb-3">
+                                    <label className="form-label">О себе:</label>
                                     {profile.bio ? (
                                         <p>{profile.bio}</p>
                                     ) : (
@@ -128,6 +164,30 @@ const TalentProfileView = () => {
                                 </div>
                             </div>
                             
+                            {/* Дополнительные поля (Факультет, Уровень образования, Курс) - размещаем вне profile-details для соответствия Profile.js */}
+                            {profile.user?.faculty && (
+                                <div className="mb-3">
+                                    <label className="form-label">Факультет:</label>
+                                    <p>{profile.user.faculty}</p>
+                                </div>
+                            )}
+                            
+                            {profile.user?.education_level && (
+                                <div className="mb-3">
+                                    <label className="form-label">Уровень образования:</label>
+                                    <p>{profile.user.education_level}</p>
+                                </div>
+                            )}
+
+                            {profile.user?.course && (
+                                <div className="mb-3">
+                                    <label className="form-label">Курс:</label>
+                                    <p>{profile.user.course}</p>
+                                </div>
+                            )}
+
+                            {/* Кнопки сохранения/отмены здесь не нужны */}
+
                             <div className="text-center mt-4">
                                 <button 
                                     className="btn btn-secondary"
@@ -141,7 +201,7 @@ const TalentProfileView = () => {
                 </div>
             </div>
 
-            {/* Модальное окно для отправки сообщения */}
+            {/* Модальное окно для отправки сообщения - оставляем, организатор может захотеть связаться */}
             {contactModalOpen && (
                 <div className="contact-modal-overlay">
                     <div className="contact-modal">

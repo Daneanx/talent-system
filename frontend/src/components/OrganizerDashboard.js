@@ -16,6 +16,7 @@ const OrganizerDashboard = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [comments, setComments] = useState({});
     const [expandedMessages, setExpandedMessages] = useState({});
+    const [expandedSkills, setExpandedSkills] = useState({});
 
     useEffect(() => {
         fetchData();
@@ -140,6 +141,14 @@ const OrganizerDashboard = () => {
         }));
     };
 
+    // Функция для переключения состояния развернутости навыков
+    const toggleSkillsExpansion = (applicationId) => {
+        setExpandedSkills(prevState => ({
+            ...prevState,
+            [applicationId]: !prevState[applicationId]
+        }));
+    };
+
     if (loading) return <div className="text-center mt-5">Загрузка...</div>;
     if (error) return <div className="alert alert-danger mt-3">{error}</div>;
 
@@ -239,13 +248,24 @@ const OrganizerDashboard = () => {
                                             <p><strong>Навыки:</strong>
                                                 {/* Проверяем, что skills - это массив и не пустой */}
                                                 {application.talent_profile?.skills && Array.isArray(application.talent_profile.skills) && application.talent_profile.skills.length > 0 ? (
-                                                    application.talent_profile.skills.map((skill, index) => (
-                                                        <span key={skill.id} className={`skill-tag color-${(index % 5) + 1}`} style={{ marginRight: '5px' }}>{skill.name}</span>
-                                                    ))
+                                                    <div className={`skills-list-container ${expandedSkills[application.id] ? 'expanded' : ''}`}>
+                                                        {application.talent_profile.skills.map((skill, index) => (
+                                                            <span key={skill.id} className={`skill-tag color-${(index % 5) + 1}`} style={{ marginRight: '5px' }}>{skill.name}</span>
+                                                        ))}
+                                                    </div>
                                                 ) : (
                                                     <span>Не указаны</span>
                                                 )}
                                             </p>
+                                            {/* Кнопка "Развернуть" для навыков, если их много */}
+                                            {application.talent_profile?.skills && application.talent_profile.skills.length > 5 && (
+                                                <button
+                                                    className="skills-expansion-button pinterest-button"
+                                                    onClick={() => toggleSkillsExpansion(application.id)}
+                                                >
+                                                    {expandedSkills[application.id] ? 'Свернуть' : 'Развернуть'}
+                                                </button>
+                                            )}
                                             <p><strong>Дата подачи:</strong> {new Date(application.created_at).toLocaleDateString()}</p>
                                         </div>
                                         <div className="application-message">
@@ -254,7 +274,7 @@ const OrganizerDashboard = () => {
                                                 <p className="message-text">{application.message || 'Сообщение отсутствует'}</p>
                                                 {application.message && application.message.length > 100 && (
                                                     <button 
-                                                        className="read-more-button"
+                                                        className="message-expansion-button pinterest-button"
                                                         onClick={(e) => {
                                                             e.stopPropagation(); // Предотвращаем всплытие события клика
                                                             toggleMessageExpansion(application.id);

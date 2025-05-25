@@ -132,11 +132,16 @@
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
+  justify-content: center;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .application-card {
-  width: calc(50% - 10px); /* Две колонки с учетом gap */
-  box-sizing: border-box; /* Учитываем padding и border в ширине */
+  width: calc(50% - 10px);
+  min-width: 300px;
+  max-width: 580px;
+  box-sizing: border-box;
 }
 
 .application-card:hover {
@@ -339,9 +344,45 @@
   border-radius: 12px;
   font-size: 0.75rem;
   color: #555;
+  margin: 0 5px 5px 0;
+  display: inline-block;
 }
 
-/* Предопределенные классы цветов (пример, можно расширить) */
+/* Контейнер для списка навыков с ограничением по высоте */
+.skills-list-container {
+  overflow: hidden;
+  max-height: 30px;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.skills-list-container.expanded {
+  max-height: 200px;
+}
+
+/* Стили для кнопки разворачивания навыков в стиле Pinterest */
+.skills-expansion-button.pinterest-button {
+  display: inline-block;
+  background-color: #efefef;
+  color: #111;
+  border: none;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 5px;
+}
+
+.skills-expansion-button.pinterest-button:hover {
+  background-color: #e1e1e1;
+}
+
+.skills-expansion-button.pinterest-button:active {
+  background-color: #d1d1d1;
+}
+
+/* Переносим стили цветов бейджей ниже */
 .applications-list .skill-tag.color-1 { background-color: #e0f7fa; color: #0077a6; }
 .applications-list .skill-tag.color-2 { background-color: #e8f5e9; color: #33691e; }
 .applications-list .skill-tag.color-3 { background-color: #fff3e0; color: #e65100; }
@@ -353,4 +394,27 @@
   .application-card {
     width: 100%; /* На маленьких экранах - одна колонка */
   }
+}
+
+/* Стили для кнопки разворачивания сообщения в стиле Pinterest */
+.message-expansion-button.pinterest-button {
+  display: inline-block;
+  background-color: #efefef;
+  color: #111;
+  border: none;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 5px;
+}
+
+.message-expansion-button.pinterest-button:hover {
+  background-color: #e1e1e1;
+}
+
+.message-expansion-button.pinterest-button:active {
+  background-color: #d1d1d1;
 } 
