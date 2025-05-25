@@ -71,11 +71,7 @@ class TalentProfileSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(source='user.last_name', required=False, allow_blank=True)
 
     # Явно определяем поле skills как ManyToManyField с PrimaryKeyRelatedField
-    skills = serializers.PrimaryKeyRelatedField(
-        queryset=Skill.objects.all(),
-        many=True,
-        required=False
-    )
+    skills = SkillSerializer(many=True, read_only=True)
 
     def validate_preferences(self, value):
         if value and not re.match(r'^[a-zA-Zа-яА-ЯёЁ0-9\s,]+$', value):

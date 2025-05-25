@@ -76,6 +76,10 @@ class OrganizerProfile(models.Model):
     def __str__(self):
         return f"{self.organization_name} ({self.user.username})"
 
+    class Meta:
+        verbose_name = "Профиль организатора"
+        verbose_name_plural = "Профили организаторов"
+
 # Event содержит информацию о мероприятии, включая требуемые навыки.
 class Event(models.Model):
     STATUS_CHOICES = [
@@ -123,3 +127,7 @@ class Application(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.event.title}"
+
+    class Meta:
+        verbose_name = "Заявка"
+        verbose_name_plural = "Заявки"
