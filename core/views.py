@@ -30,7 +30,6 @@ def register_user(request):
             # Создание профиля для пользователя с передачей всех данных
             profile = TalentProfile.objects.create(
                 user=user,
-                skills=request.data.get('skills', ''),
                 preferences=request.data.get('preferences', ''),
                 bio=request.data.get('bio', ''),
                 faculty_id=request.data.get('faculty_id'),
@@ -39,6 +38,13 @@ def register_user(request):
             )
             print(f"Создан профиль таланта с ID: {profile.id}")
             
+            # Устанавливаем навыки, используя метод set() для ManyToMany поля
+            skills_data = request.data.get('skills')
+            if skills_data and isinstance(skills_data, list):
+                # Предполагаем, что skills_data содержит список ID навыков
+                profile.skills.set(skills_data)
+                print(f"Установлены навыки для профиля {profile.id}: {skills_data}")
+
             # Генерация токена
             refresh = RefreshToken.for_user(user)
             return Response({
@@ -182,7 +188,7 @@ def create_application(request):
         ).exists()
         
         if existing_application:
-            return Response({"Вы уже подали заявку на это мероприятие"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Вы уже подали заявку на это мероприятие"}, status=status.HTTP_400_BAD_REQUEST)
         
         # Создаем сериализатор для валидации и сохранения
         serializer = ApplicationSerializer(data=request.data)
@@ -550,6 +556,7 @@ class SkillViewSet(viewsets.ModelViewSet):
     serializer_class = SkillSerializer
     # Разрешаем чтение всем, но создание/обновление/удаление только админам и организаторам
     permission_classes = [AllowAny]
+    pagination_class = None # Отключаем пагинацию для этого ViewSet
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:

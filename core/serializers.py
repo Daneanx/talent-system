@@ -204,6 +204,23 @@ class EventSerializer(serializers.ModelSerializer):
                 return None # Если заявки нет, возвращаем null
         return None # Если пользователь не аутентифицирован, возвращаем null
 
+    def create(self, validated_data):
+        # Извлекаем ManyToMany поля из validated_data
+        required_skills_data = validated_data.pop('required_skills', [])
+        faculties_data = validated_data.pop('faculties', [])
+
+        # Получаем текущего аутентифицированного пользователя из контекста запроса
+        user = self.context['request'].user
+
+        # Создаем объект Event без ManyToMany полей
+        event = Event.objects.create(organizer=user, **validated_data)
+
+        # Устанавливаем ManyToMany поля с помощью метода .set()
+        event.required_skills.set(required_skills_data)
+        event.faculties.set(faculties_data)
+
+        return event
+
     class Meta:
         model = Event
         fields = [
@@ -212,7 +229,7 @@ class EventSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at', 'applications_count', 'faculty_restriction',
             'faculties', 'faculty_ids', 'user_application_status' # Добавляем новое поле
         ]
-        read_only_fields = ['id', 'organizer', 'created_at', 'updated_at', 'user_application_status']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user_application_status'] # Убрали 'organizer'
 
 class ApplicationSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
