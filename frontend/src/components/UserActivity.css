@@ -1,6 +1,6 @@
 .user-activity-container {
     max-width: 1200px;
-    margin: 2rem auto;
+    margin: 30px auto;
     padding: 0 1rem;
 }
 
@@ -13,10 +13,10 @@
 
 .activity-stats-cards .stat-card {
     background: white;
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 1.5rem;
     text-align: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
 }
 
 .activity-stats-cards .stat-card h3 {
@@ -28,15 +28,15 @@
 .activity-stats-cards .stat-card .stat-value {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #3498db;
+    color: #e05748;
     margin: 0.5rem 0;
 }
 
 .activity-chart {
     background: white;
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 768px) {

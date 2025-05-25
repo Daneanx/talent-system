@@ -13,6 +13,7 @@ const EventDetail = () => {
     const [message, setMessage] = useState('');
     const [applicationSuccess, setApplicationSuccess] = useState(false);
     const [applicationError, setApplicationError] = useState('');
+    const [isSkillsExpanded, setIsSkillsExpanded] = useState(false);
     
     useEffect(() => {
         fetchEvent();
@@ -100,8 +101,12 @@ const EventDetail = () => {
             console.error('EventDetail: requiredSkills is not an array', requiredSkills);
             return [];
         }
-        // Извлекаем имя каждого навыка из объекта навыка
-        return requiredSkills.map(skill => skill.name);
+        // Возвращаем массив объектов навыков
+        return requiredSkills;
+    };
+
+    const toggleSkills = () => {
+        setIsSkillsExpanded(!isSkillsExpanded);
     };
 
     if (loading) return <div className="text-center mt-5">Загрузка...</div>;
@@ -175,17 +180,24 @@ const EventDetail = () => {
                     </div>
                     
                     <div className="event-skills">
-                        <h3>Требуемые навыки</h3>
-                        <div className="skills-container">
-                            {getSkills(event.required_skills).map((skill, index) => (
-                                <span key={index} className="skill-tag">{skill}</span>
+                        <h3 className="skills-toggle-header" onClick={toggleSkills} style={{ cursor: 'pointer' }}>
+                            Требуемые навыки <i className={`fas ${isSkillsExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
+                        </h3>
+                        <div className={`skills-container ${isSkillsExpanded ? 'expanded' : 'collapsed'}`}>
+                            {getSkills(event.required_skills).map((skill) => (
+                                <span 
+                                    key={skill.id} 
+                                    className={`skill-tag color-${(skill.id % 5) + 1}`}
+                                >
+                                    {skill.name}
+                                </span>
                             ))}
                         </div>
                     </div>
                 </div>
                 
                 <div className="col-lg-4">
-                    <div className="application-card">
+                    <div className="card shadow-sm application-card">
                         <h3>Заявка на участие</h3>
                         
                         {applicationSuccess ? (
@@ -225,7 +237,7 @@ const EventDetail = () => {
                                         
                                         <button 
                                             type="submit" 
-                                            className="btn btn-primary w-100"
+                                            className="pinterest-like-button w-100"
                                             disabled={event.status !== 'published'}
                                         >
                                             {event.status === 'published' ? 'Подать заявку' : 'Мероприятие недоступно для заявок'}

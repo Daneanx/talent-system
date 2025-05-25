@@ -60,11 +60,11 @@ const Profile = () => {
         try {
             const response = await api.get('api/skills/');
             console.log('Данные получены с api/skills/', response.data);
-            // Проверяем, что ответ содержит поле results и что results является массивом
-            if (response.data && Array.isArray(response.data.results)) {
-                setAvailableSkills(response.data.results);
+            // Проверяем, что ответ является массивом, так как пагинация отключена
+            if (response.data && Array.isArray(response.data)) {
+                setAvailableSkills(response.data);
             } else {
-                console.error('Неожиданный формат данных навыков или results не является массивом:', response.data);
+                console.error('Неожиданный формат данных навыков или ответ не является массивом:', response.data);
                 setAvailableSkills([]); // Устанавливаем пустой массив, чтобы избежать ошибок
             }
         } catch (err) {
@@ -209,7 +209,7 @@ const Profile = () => {
                             <div className="profile-header-row mb-4 d-flex justify-content-between align-items-center">
                                 <h2 className="card-title mb-0 profile-title">Мой профиль</h2>
                                 {!isEditing && profile && (
-                                    <button className="btn btn-outline-primary btn-sm edit-profile-button" onClick={handleEditClick}>
+                                    <button className="pinterest-like-button" onClick={handleEditClick}>
                                         Редактировать
                                     </button>
                                 )}
@@ -229,19 +229,34 @@ const Profile = () => {
                             <div className="profile-content">
                                 <div className="profile-header text-center mb-4">
                                     <div className="avatar-container mb-3 position-relative">
-                                        <img
-                                            src={avatarPreview || '/media/avatars/default-avatar.png'}
-                                            alt="Аватар"
-                                            className={`avatar-image ${isUploading ? 'uploading' : ''}`}
-                                            style={{
+                                        {avatarPreview ? (
+                                            <img
+                                                src={avatarPreview}
+                                                alt="Аватар"
+                                                className={`avatar-image ${isUploading ? 'uploading' : ''}`}
+                                                style={{
+                                                    width: 150,
+                                                    height: 150,
+                                                    borderRadius: '50%',
+                                                    objectFit: 'cover',
+                                                    border: '3px solid #eee',
+                                                    transition: 'all 0.3s ease'
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className="avatar-placeholder d-flex justify-content-center align-items-center" style={{
                                                 width: 150,
                                                 height: 150,
                                                 borderRadius: '50%',
-                                                objectFit: 'cover',
+                                                backgroundColor: '#e9ecef', // Светло-серый фон
+                                                color: '#6c757d', // Темно-серый цвет иконки
+                                                fontSize: '3rem', // Размер иконки
                                                 border: '3px solid #eee',
                                                 transition: 'all 0.3s ease'
-                                            }}
-                                        />
+                                            }}>
+                                                <i className="fas fa-user-circle"></i>
+                                            </div>
+                                        )}
                                         {isEditing && (
                                             <div className="avatar-overlay">
                                                 <label htmlFor="avatarUpload" className="btn btn-outline-light btn-sm">
@@ -286,7 +301,7 @@ const Profile = () => {
                                     )}
                                 </div>
 
-                                <div className="profile-details">
+                                <div className={`profile-details ${isEditing ? 'profile-edit-mode' : ''}`}>
                                     <div className="mb-3">
                                         <label className="form-label">Навыки:</label>
                                         {isEditing ? (
@@ -349,6 +364,13 @@ const Profile = () => {
                                         )}
                                     </div>
 
+                                    {!isEditing && profile?.user?.email && (
+                                        <div className="mb-3">
+                                            <label className="form-label">Почта:</label>
+                                            <p>{profile.user.email}</p>
+                                        </div>
+                                    )}
+
                                     {!isEditing && profile && (
                                         <div className="additional-details mt-4 pt-4 border-top">
                                             <p><strong>Факультет:</strong> {profile.faculty?.name || 'Не указан'}</p>
@@ -357,6 +379,11 @@ const Profile = () => {
                                         </div>
                                     )}
                                     
+                                    {!isEditing && (
+                                        <p className="admin-contact-message">
+                                            Если вы хотите поменять почту и информацию о вашем образовании, обратитесь к администратору.
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
@@ -364,7 +391,7 @@ const Profile = () => {
                                 <div className="d-flex justify-content-end mt-4">
                                     <button 
                                         type="button" 
-                                        className="btn btn-secondary me-2" 
+                                        className="btn btn-outline-secondary me-2" 
                                         onClick={handleCancelClick} 
                                         disabled={isUploading}
                                     >
@@ -372,11 +399,13 @@ const Profile = () => {
                                     </button>
                                     <button
                                         type="submit"
-                                        className="btn btn-primary"
+                                        className="pinterest-like-button"
                                         onClick={handleSubmit}
                                         disabled={isUploading}
                                     >
-                                        {isUploading ? 'Сохранение...' : 'Сохранить'}
+                                        {isUploading ? (
+                                            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        ) : 'Сохранить'}
                                     </button>
                                 </div>
                             )}

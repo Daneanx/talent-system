@@ -15,6 +15,7 @@ const OrganizerDashboard = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [comments, setComments] = useState({});
+    const [expandedMessages, setExpandedMessages] = useState({});
 
     useEffect(() => {
         fetchData();
@@ -131,6 +132,14 @@ const OrganizerDashboard = () => {
         }));
     };
 
+    // Функция для переключения состояния развернутости сообщения
+    const toggleMessageExpansion = (applicationId) => {
+        setExpandedMessages(prevState => ({
+            ...prevState,
+            [applicationId]: !prevState[applicationId]
+        }));
+    };
+
     if (loading) return <div className="text-center mt-5">Загрузка...</div>;
     if (error) return <div className="alert alert-danger mt-3">{error}</div>;
 
@@ -227,12 +236,36 @@ const OrganizerDashboard = () => {
                                     <div className="application-content">
                                         <div className="applicant-info">
                                             <p><strong>Талант:</strong> {application.user.first_name} {application.user.last_name} ({application.user.username})</p>
-                                            <p><strong>Навыки:</strong> {application.talent_profile?.skills}</p>
+                                            <p><strong>Навыки:</strong>
+                                                {/* Проверяем, что skills - это массив и не пустой */}
+                                                {application.talent_profile?.skills && Array.isArray(application.talent_profile.skills) && application.talent_profile.skills.length > 0 ? (
+                                                    application.talent_profile.skills.map((skill, index) => (
+                                                        <span key={skill.id} className={`skill-tag color-${(index % 5) + 1}`} style={{ marginRight: '5px' }}>{skill.name}</span>
+                                                    ))
+                                                ) : (
+                                                    <span>Не указаны</span>
+                                                )}
+                                            </p>
                                             <p><strong>Дата подачи:</strong> {new Date(application.created_at).toLocaleDateString()}</p>
                                         </div>
                                         <div className="application-message">
                                             <p><strong>Сообщение:</strong></p>
-                                            <p>{application.message || 'Сообщение отсутствует'}</p>
+                                            <div className={`message-content ${expandedMessages[application.id] ? 'expanded' : ''}`}>
+                                                <p className="message-text">{application.message || 'Сообщение отсутствует'}</p>
+                                                {application.message && application.message.length > 100 && (
+                                                    <button 
+                                                        className="read-more-button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation(); // Предотвращаем всплытие события клика
+                                                            toggleMessageExpansion(application.id);
+                                                        }}
+                                                    >
+                                                        {expandedMessages[application.id] ? 'Свернуть' : 'Развернуть'}
+                                                    </button>
+                                                )}
+                                                {/* Отладочный лог для сообщения и его длины */}
+                                                {console.log(`Application ID: ${application.id}, Message Length: ${application.message?.length}, Message: ${application.message}`)}
+                                            </div>
                                         </div>
                                         
                                         <div className="organizer-comment mt-3">

@@ -129,21 +129,20 @@
 }
 
 .applications-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 20px;
 }
 
 .application-card {
-  background-color: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  transition: transform 0.3s ease;
+  width: calc(50% - 10px); /* Две колонки с учетом gap */
+  box-sizing: border-box; /* Учитываем padding и border в ширине */
 }
 
 .application-card:hover {
   transform: translateY(-5px);
+  box-shadow: var(--hover-shadow);
+  border-color: var(--primary-color);
 }
 
 .application-header {
@@ -295,4 +294,63 @@
   border-color: #4e73df;
   box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
   outline: none;
+}
+
+/* Стили для сворачиваемого сообщения */
+.message-content {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.message-text {
+  white-space: pre-wrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.message-content.expanded .message-text {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.read-more-button {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+  margin-top: 5px;
+  text-decoration: underline;
+}
+
+.read-more-button:hover {
+  color: var(--primary-color-dark);
+}
+
+/* Стили для бейджей навыков в заявках */
+.applications-list .skill-tag {
+  background-color: #f1f1f1;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: #555;
+}
+
+/* Предопределенные классы цветов (пример, можно расширить) */
+.applications-list .skill-tag.color-1 { background-color: #e0f7fa; color: #0077a6; }
+.applications-list .skill-tag.color-2 { background-color: #e8f5e9; color: #33691e; }
+.applications-list .skill-tag.color-3 { background-color: #fff3e0; color: #e65100; }
+.applications-list .skill-tag.color-4 { background-color: #ede7f6; color: #4527a0; }
+.applications-list .skill-tag.color-5 { background-color: #ffebee; color: #c62828; }
+
+/* Добавляем медиа-запрос для адаптивности */
+@media (max-width: 768px) {
+  .application-card {
+    width: 100%; /* На маленьких экранах - одна колонка */
+  }
 } 

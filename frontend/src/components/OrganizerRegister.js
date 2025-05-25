@@ -56,6 +56,11 @@ const OrganizerRegister = () => {
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('userType', 'organizer');
                 api.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+
+                if (response.data.organizer_id) {
+                    localStorage.setItem('organizerId', response.data.organizer_id);
+                }
+
                 navigate('/organizer/dashboard');
             } else {
                 setError('Не удалось получить токен авторизации');
@@ -185,7 +190,7 @@ const OrganizerRegister = () => {
                                 <div className="d-grid">
                                     <button 
                                         type="submit" 
-                                        className="btn btn-primary"
+                                        className="btn btn-primary pinterest-like-button"
                                         disabled={isSubmitting}
                                     >
                                         {isSubmitting ? 'Регистрация...' : 'Зарегистрироваться'}

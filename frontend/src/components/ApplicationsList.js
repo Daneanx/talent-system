@@ -8,6 +8,7 @@ const ApplicationsList = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const [expandedMessages, setExpandedMessages] = useState({}); // State to track expanded messages
 
     useEffect(() => {
         fetchApplications();
@@ -98,7 +99,22 @@ const ApplicationsList = () => {
                                     {application.message && (
                                         <div className="mt-3">
                                             <h6>Ваше сообщение:</h6>
-                                            <p className="text-muted">{application.message}</p>
+                                            <div className="message-container">
+                                                <p className={`text-muted ${expandedMessages[application.id] ? '' : 'collapsed'}`}>
+                                                    {application.message}
+                                                </p>
+                                                {application.message.length > 150 && (
+                                                    <button
+                                                        className="btn btn-link p-0"
+                                                        onClick={() => setExpandedMessages(prev => ({
+                                                            ...prev,
+                                                            [application.id]: !prev[application.id]
+                                                        }))}
+                                                    >
+                                                        {expandedMessages[application.id] ? 'Свернуть' : 'Развернуть'}
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                     

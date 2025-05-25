@@ -38,7 +38,7 @@ const EventForm = () => {
         try {
             const response = await api.get('api/skills/');
             console.log('Получены навыки:', response.data);
-            setAvailableSkills(response.data.results);
+            setAvailableSkills(response.data);
         } catch (err) {
             console.error('Ошибка загрузки навыков:', err);
             setError('Не удалось загрузить список навыков');
@@ -123,6 +123,19 @@ const EventForm = () => {
                     formDataToSend.append(key, formData[key]);
                 }
             });
+
+            // Добавляем organizer_id при создании мероприятия
+            if (!id) {
+                // Получаем organizer_id из локального хранилища (предполагается, что он там сохранен после входа)
+                const organizerId = localStorage.getItem('organizerId'); // Используем ключ 'organizerId'
+
+                if (organizerId) {
+                    formDataToSend.append('organizer', organizerId);
+                } else {
+                    setError('Не удалось определить ID организатора. Пожалуйста, попробуйте войти снова.');
+                    return; // Прерываем выполнение, если нет ID организатора
+                }
+            }
 
             if (id) {
                 await api.patch(`api/events/${id}/`, formDataToSend);
@@ -223,6 +236,25 @@ const EventForm = () => {
                                         required
                                     />
                                 </div>
+
+                                {/* Добавляем поле выбора статуса для режима редактирования */}
+                                {id && (
+                                    <div className="mb-3">
+                                        <label className="form-label">Статус мероприятия</label>
+                                        <select
+                                            className="form-select"
+                                            name="status"
+                                            value={formData.status}
+                                            onChange={handleChange}
+                                            required
+                                        >
+                                            <option value="draft">Черновик</option>
+                                            <option value="published">Опубликовано</option>
+                                            <option value="closed">Закрыто</option>
+                                            <option value="cancelled">Отменено</option>
+                                        </select>
+                                    </div>
+                                )}
 
                                 <div className="mb-3">
                                     <label className="form-label">Изображение</label>

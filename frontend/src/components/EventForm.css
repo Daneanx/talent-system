@@ -1,3 +1,23 @@
+body {
+    background-color: #f0f0f0; /* Светло-серый фон как на Pinterest */
+    font-family: 'Helvetica Neue', Arial, sans-serif; /* Шрифт как на Pinterest */
+}
+
+.container.mt-4 {
+    margin-top: 30px !important; /* Увеличим отступ сверху */
+    margin-bottom: 30px; /* Добавим отступ снизу */
+}
+
+.card.shadow-sm {
+    border-radius: 8px; /* Скругленные углы */
+    box-shadow: none; /* Убираем стандартную тень */
+    border: 1px solid #e0e0e0; /* Тонкая серая рамка */
+}
+
+.card-body {
+    padding: 30px; /* Увеличим внутренние отступы */
+}
+
 .image-preview-container {
     max-width: 300px;
     margin-top: 10px;
@@ -30,11 +50,11 @@
 }
 
 .img-preview {
-    max-width: 200px;
-    max-height: 200px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-top: 10px;
+    max-width: 100%; /* Изображение не должно выходить за контейнер */
+    height: auto; /* Сохраняем пропорции */
+    border-radius: 8px; /* Скругленные углы */
+    border: 1px solid #ddd; /* Легкая рамка */
+    margin-top: 10px; /* Отступ сверху */
 }
 
 .form-check {
@@ -42,8 +62,14 @@
 }
 
 .form-check-input:checked {
-    background-color: #e05748;
+    background-color: #e05748; /* Цвет чекбокса при выборе */
     border-color: #e05748;
+}
+
+.form-check-input:focus {
+    border-color: #e05748;
+    box-shadow: 0 0 0 0.2rem rgba(224, 87, 72, 0.25);
+    outline: none;
 }
 
 .form-select[multiple] {
@@ -56,8 +82,8 @@
 }
 
 .form-select[multiple] option:checked {
-    background-color: #e05748;
-    color: white;
+    background-color: #e05748; /* Цвет фона выбранной опции */
+    color: white; /* Цвет текста выбранной опции */
 }
 
 .form-text {
@@ -75,26 +101,48 @@
     padding: 2rem;
 }
 
+.card-title.text-center.mb-4 {
+    font-weight: 700; /* Жирный шрифт */
+    color: #333; /* Цвет текста */
+    margin-bottom: 25px !important; /* Увеличим нижний отступ */
+}
+
 .form-label {
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 0.5rem;
+    font-weight: 600; /* Жирный шрифт для лейблов */
+    color: #555; /* Цвет лейблов */
+    margin-bottom: 8px; /* Отступ снизу */
 }
 
-.form-control:focus,
-.form-select:focus {
+.form-control, .form-select {
+    border-radius: 8px; /* Скругленные углы */
+    border: 1px solid #ddd; /* Тонкая рамка */
+    padding: 10px 15px; /* Внутренние отступы */
+    box-shadow: none; /* Убираем тень */
+    transition: border-color 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #e05748; /* Цвет рамки при фокусе */
+    box-shadow: 0 0 0 0.2rem rgba(224, 87, 72, 0.25); /* Легкая тень при фокусе */
+    outline: none; /* Убираем стандартный outline */
+}
+
+textarea.form-control {
+    resize: vertical; /* Разрешаем только вертикальное изменение размера */
+}
+
+.btn-primary.w-100 {
+    background-color: #e05748; /* Цвет кнопки как на Pinterest */
     border-color: #e05748;
-    box-shadow: 0 0 0 0.2rem rgba(224, 87, 72, 0.25);
+    color: white;
+    border-radius: 20px; /* Скругленные углы */
+    padding: 10px 20px; /* Внутренние отступы */
+    font-weight: 500; /* Жирность шрифта */
+    transition: background-color 0.2s ease;
+    width: 100% !important; /* Убедимся, что кнопка занимает всю ширину */
 }
 
-.btn-primary {
-    background-color: #e05748;
-    border-color: #e05748;
-    padding: 0.5rem 1.5rem;
-    font-weight: 500;
-}
-
-.btn-primary:hover {
+.btn-primary.w-100:hover {
     background-color: #c04738;
     border-color: #c04738;
 }
@@ -123,29 +171,6 @@
 
 .form-group {
   margin-bottom: var(--spacing-lg);
-}
-
-.form-label {
-  display: block;
-  margin-bottom: var(--spacing-sm);
-  color: var(--secondary-color);
-  font-weight: 500;
-}
-
-.form-control {
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid #ddd;
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-base);
-  transition: all var(--transition-fast);
-  background-color: white;
-}
-
-.form-control:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(224, 87, 72, 0.1);
-  outline: none;
 }
 
 .form-control::placeholder {

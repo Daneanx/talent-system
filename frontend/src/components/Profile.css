@@ -4,20 +4,22 @@
 }
 
 .profile-card {
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    padding: 20px;
+    padding: 30px;
 }
 
 .profile-card .card-body {
-    padding: 20px;
+    padding: 0;
 }
 
 .profile-header {
     margin-bottom: 20px;
     padding-bottom: 20px;
     border-bottom: 1px solid #eee;
+    text-align: center;
 }
 
 .skills-container {
@@ -67,6 +69,7 @@
 /* Стили для полей формы */
 .form-control:focus {
     border-color: #e05748;
+    border: var(--bs-border-width) solid #cdcdcd;
     box-shadow: 0 0 0 0.2rem rgba(224, 87, 72, 0.25);
 }
 
@@ -97,11 +100,12 @@
 .avatar-container {
     position: relative;
     display: inline-block;
+    margin-bottom: 20px;
 }
 
 .avatar-image {
     transition: all 0.3s ease;
-    border: 3px solid #eee;
+    border: 4px solid #fff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -221,6 +225,16 @@
     padding-top: 20px;
 }
 
+/* Style for admin contact message */
+.admin-contact-message {
+    font-size: 0.85rem;
+    color: #e05748; /* Use Pinterest red */
+    text-align: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed #eee; /* Add a subtle dashed line above */
+}
+
 /* Медиа-запросы для адаптивности (если нужно) */
 @media (max-width: 768px) {
     .profile-card {
@@ -249,6 +263,34 @@
     border-color: #212529;
 }
 
+/* Add Pinterest-like button style */
+.pinterest-like-button {
+    background-color: #e05748; /* Pinterest red */
+    color: white; /* White text */
+    border: none; /* No border */
+    border-radius: 20px; /* Pill shape */
+    padding: 8px 16px; /* Adequate padding */
+    font-size: 0.9rem; /* Slightly smaller font */
+    font-weight: 600; /* Bold text */
+    cursor: pointer; /* Indicate clickable */
+    transition: background-color 0.2s ease, opacity 0.2s ease; /* Smooth hover and disabled effect */
+}
+
+.pinterest-like-button:hover {
+    background-color: #c04738; /* Darker red on hover */
+}
+
+.pinterest-like-button:focus {
+    outline: none; /* Remove focus outline */
+    box-shadow: 0 0 0 0.2rem rgba(224, 87, 72, 0.5); /* Add a subtle focus ring */
+}
+
+.pinterest-like-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #e05748; /* Keep the same color when disabled */
+}
+
 .profile-header-row {
     /* Дополнительные стили, если нужны для выравнивания */
 }
@@ -274,4 +316,9 @@
     --bs-btn-disabled-bg: transparent;
     --bs-btn-disabled-border-color: #000000;
     --bs-gradient: none;
+}
+
+/* Стили для режима редактирования */
+.profile-edit-mode .mb-3 {
+    margin-bottom: 15px; /* Увеличиваем нижний отступ для элементов формы в режиме редактирования */
 }

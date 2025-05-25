@@ -8,11 +8,13 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  border: 1px solid #e0e0e0;
 }
 
 .event-card:hover {
   transform: translateY(-5px);
   box-shadow: var(--hover-shadow);
+  border-color: var(--primary-color);
 }
 
 .event-card-image {
@@ -27,7 +29,7 @@
 }
 
 .event-card-content {
-  padding: var(--spacing-xl);
+  padding: 9px;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
@@ -130,7 +132,7 @@
   }
 
   .event-card-content {
-    padding: var(--spacing-md);
+    padding: 9px;
   }
 
   .event-card-title {
@@ -304,6 +306,9 @@
 .event-date {
   color: #555;
   font-size: 0.9rem;
+  padding-top: 9px;
+  padding-left: 3px;
+  padding-bottom: 9px;
   margin-bottom: 8px;
 }
 
@@ -326,6 +331,14 @@
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 10px;
+  max-height: 40px;
+  overflow: hidden;
+  transition: max-height 0.5s ease-in-out;
+}
+
+.event-card:hover .event-skills {
+  max-height: 200px;
+  overflow: visible;
 }
 
 .skill-tag {
@@ -334,7 +347,16 @@
   border-radius: 12px;
   font-size: 0.75rem;
   color: #555;
+  /* Добавляем разные цвета для бейджей навыков */
+  /* Это базовый стиль, цвета будут переопределяться через JS или inline-стили */
 }
+
+/* Добавляем предопределенные классы цветов (пример, можно расширить) */
+.skill-tag.color-1 { background-color: #e0f7fa; color: #0077a6; }
+.skill-tag.color-2 { background-color: #e8f5e9; color: #33691e; }
+.skill-tag.color-3 { background-color: #fff3e0; color: #e65100; }
+.skill-tag.color-4 { background-color: #ede7f6; color: #4527a0; }
+.skill-tag.color-5 { background-color: #ffebee; color: #c62828; }
 
 .event-applications-count {
   font-size: 0.85rem;
@@ -359,13 +381,13 @@
   border-radius: 8px;
   background-color: #f9f9f9;
   overflow: hidden;
-  max-height: 30px;
-  transition: max-height 0.3s ease-in-out;
+  max-height: 40px;
+  transition: max-height 0.5s ease-in-out;
   cursor: pointer;
 }
 
 .event-card:hover .event-faculties-restriction {
-  max-height: 200px;
+  max-height: 300px;
   position: static;
   left: auto;
   right: auto;
@@ -459,20 +481,25 @@
 }
 
 .event-card-dashboard .event-skills {
-  margin-top: 0;
-  margin-bottom: 0;
-  /* Добавляем стили для компактного отображения навыков */
   display: flex;
+  justify-content: flex-start;
   flex-wrap: wrap;
-  max-height: 40px; /* Ограничиваем высоту для скрытия лишних */
-  overflow: hidden;
-  align-items: center;
-  gap: var(--spacing-xs);
+  gap: 5px;
+  margin-top: 10px;
+  max-height: 40px; /* Ограничиваем высоту для 1-2 строк бейджей */
+  overflow: hidden; /* Скрываем лишние */
+  transition: max-height 0.6s ease-in-out;
+}
+
+.event-card-dashboard:hover .event-skills {
+  max-height: 200px; /* Достаточно, чтобы показать все бейджи */
+  overflow: visible; /* Показываем все содержимое при наведении */
 }
 
 .event-card-dashboard .skill-tag {
     font-size: var(--font-size-xs);
     padding: 2px 6px;
+    box-sizing: border-box;
 }
 
 .event-card-dashboard .skill-more {

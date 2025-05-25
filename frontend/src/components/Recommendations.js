@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import EventCard from './EventCard';
 import './Recommendations.css';
+import { useNavigate } from 'react-router-dom';
 
 const Recommendations = () => {
     const [recommendations, setRecommendations] = useState([]);
@@ -14,6 +15,8 @@ const Recommendations = () => {
     const [availableSkills, setAvailableSkills] = useState([]);
     const [faculties, setFaculties] = useState([]);
     const [selectedFaculty, setSelectedFaculty] = useState('all');
+    const [isSkillsFilterExpanded, setIsSkillsFilterExpanded] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchData();
@@ -92,9 +95,13 @@ const Recommendations = () => {
         });
     };
 
-     const handleFacultyChange = (e) => {
-         setSelectedFaculty(e.target.value);
-     };
+    const toggleSkillsFilter = () => {
+        setIsSkillsFilterExpanded(!isSkillsFilterExpanded);
+    };
+
+    const handleFacultyChange = (e) => {
+        setSelectedFaculty(e.target.value);
+    };
 
     const filteredEvents = () => {
         let events = activeTab === 'recommended' ? recommendations : allEvents;
@@ -136,7 +143,18 @@ const Recommendations = () => {
     return (
         <div className="recommendations-container">
             <div className="recommendations-header">
-                <h2>Мероприятия</h2>
+                <div className="header-and-button">
+                    <h2>Мероприятия</h2>
+                    {/* Проверяем, что пользователь - талант и добавляем кнопку */}
+                    {localStorage.getItem('userType') !== 'organizer' && (
+                         <button 
+                            className="pinterest-like-button ms-auto"
+                            onClick={() => navigate('/applications')}
+                        >
+                            Мои заявки
+                        </button>
+                    )}
+                </div>
                 <div className="search-filter-container">
                     <div className="search-box">
                         <input
@@ -168,8 +186,10 @@ const Recommendations = () => {
                     )}
 
                     <div className="skills-filter">
-                        <span className="skills-filter-label">Фильтр по навыкам:</span>
-                        <div className="skills-tags">
+                        <h4 className="skills-filter-header" onClick={toggleSkillsFilter} style={{ cursor: 'pointer' }}>
+                            Фильтр по навыкам <i className={`fas ${isSkillsFilterExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
+                        </h4>
+                        <div className={`skills-tags ${isSkillsFilterExpanded ? 'expanded' : 'collapsed'}`}>
                             {Array.isArray(availableSkills) && availableSkills.map(skill => (
                                 <span 
                                     key={skill.id} 

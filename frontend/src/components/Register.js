@@ -45,7 +45,13 @@ const Register = ({ setToken, setUserType }) => {
       const fetchSkills = async () => {
           try {
               const response = await api.get('api/skills/');
-              setAvailableSkills(response.data);
+              // Проверяем, что ответ содержит поле results и что results является массивом
+              if (response.data && Array.isArray(response.data.results)) {
+                  setAvailableSkills(response.data.results);
+              } else {
+                  console.error('Неожиданный формат данных навыков или results не является массивом:', response.data);
+                  setAvailableSkills([]); // Устанавливаем пустой массив, чтобы избежать ошибок
+              }
           } catch (err) {
               console.error('Ошибка загрузки навыков:', err);
               // Обработка ошибки загрузки навыков, возможно, вывод сообщения пользователю

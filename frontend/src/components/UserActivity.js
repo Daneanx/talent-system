@@ -55,8 +55,8 @@ const UserActivity = () => {
             {
                 label: 'Количество мероприятий',
                 data: skillCounts,
-                backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(224, 87, 72, 0.8)',
+                borderColor: 'rgba(224, 87, 72, 1)',
                 borderWidth: 1,
             },
         ],

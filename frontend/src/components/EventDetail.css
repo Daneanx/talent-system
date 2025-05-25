@@ -114,6 +114,9 @@
 
 .event-skills {
     margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
 
 .event-skills h3 {
@@ -123,10 +126,28 @@
     font-weight: 600;
 }
 
+.skills-toggle-header {
+    margin-bottom: 15px;
+    transition: margin-bottom 0.3s ease;
+}
+
 .skills-container {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out;
+    width: 100%;
+}
+
+.skills-container.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.skills-container.expanded {
+    max-height: 1000px;
 }
 
 .skill-tag {
@@ -152,6 +173,7 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 20px;
+    width: 100%;
 }
 
 .application-card h3 {
@@ -240,4 +262,61 @@
     position: absolute;
     left: 5px;
     color: #e05748;
+}
+
+/* Стили для разноцветных бейджей навыков */
+.skill-tag.color-1 {
+    background-color: #ffadad;
+    color: #c04738;
+    border-color: #ff8a8a;
+}
+
+.skill-tag.color-2 {
+    background-color: #ffd6a5;
+    color: #e08e48;
+    border-color: #ffb86d;
+}
+
+.skill-tag.color-3 {
+    background-color: #fdffb6;
+    color: #c7b84a;
+    border-color: #faff8a;
+}
+
+.skill-tag.color-4 {
+    background-color: #caffbf;
+    color: #7bae5c;
+    border-color: #aeff94;
+}
+
+.skill-tag.color-5 {
+    background-color: #a0c4ff;
+    color: #567aac;
+    border-color: #7cb4ff;
+}
+
+/* Медиа-запросы */
+@media (max-width: 768px) {
+    .application-card {
+        padding: 15px;
+    }
+    .event-title {
+        font-size: 1.8rem;
+    }
+    .event-meta .meta-item {
+        font-size: 1rem;
+    }
+    .event-description h3, .event-skills h3 {
+        font-size: 1.3rem;
+    }
+    .event-description p {
+        font-size: 1rem;
+    }
+    .skill-tag {
+        font-size: 0.85rem;
+        padding: 5px 10px;
+    }
+    .event-image-container {
+        height: 200px;
+    }
 } 

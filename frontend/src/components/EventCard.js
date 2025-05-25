@@ -78,6 +78,17 @@ const EventCard = ({ event, isOrganizer = false, isDashboardCard = false }) => {
         }
     };
 
+    // Вспомогательная функция для получения текста и класса статуса мероприятия
+    const getEventStatusDisplay = (status) => {
+        switch(status) {
+            case 'published': return { text: 'Опубликовано', class: 'status-published' };
+            case 'draft': return { text: 'Черновик', class: 'status-draft' };
+            case 'closed': return { text: 'Закрыто', class: 'status-closed' };
+            case 'cancelled': return { text: 'Отменено', class: 'status-cancelled' };
+            default: return { text: '', class: '' };
+        }
+    };
+
     // Определяем URL изображения и добавляем базовый URL бэкенда, если путь относительный
     const imageUrl = event.image 
         ? (event.image.startsWith('http') ? event.image : `http://127.0.0.1:8000${event.image}`)
@@ -103,12 +114,22 @@ const EventCard = ({ event, isOrganizer = false, isDashboardCard = false }) => {
                     </div>
                 )}
                 {/* Отображаем статус заявки для талантов или статус мероприятия для организаторов и других */}
-                {!isDashboardCard && (
+                {isDashboardCard ? (
+                    // Для карточек на дашборде организатора отображаем статус мероприятия
+                    <div className={`event-status ${getEventStatusDisplay(event.status).class}`}>
+                        {getEventStatusDisplay(event.status).text}
+                    </div>
+                ) : (
+                    // Для карточек на странице рекомендаций (талант)
                     event.user_application_status ? (
+                        // Если есть статус заявки, отображаем его
                         <div className={`event-status ${getApplicationStatusDisplay(event.user_application_status).class}`}>
                             {getApplicationStatusDisplay(event.user_application_status).text}
                         </div>
-                    ) : null /* Убираем отображение статуса мероприятия, если нет заявки */
+                    ) : (
+                        // Если нет статуса заявки, не отображаем статус
+                        null
+                    )
                 )}
             </div>
             <div className="event-card-content">
@@ -136,7 +157,7 @@ const EventCard = ({ event, isOrganizer = false, isDashboardCard = false }) => {
 
                 <div className="event-skills">
                     {getSkills().map((skillName, index) => (
-                        <span key={index} className="skill-tag">{skillName}</span>
+                        <span key={index} className={`skill-tag color-${(index % 5) + 1}`}>{skillName}</span>
                     ))}
                     {hasMoreSkills && <span className="skill-tag skill-more">...</span>}
                 </div>

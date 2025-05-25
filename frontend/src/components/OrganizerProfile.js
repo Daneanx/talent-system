@@ -114,7 +114,7 @@ const OrganizerProfile = () => {
                                 <h2 className="card-title">Профиль организатора</h2>
                                 {!isEditing && (
                                     <button 
-                                        className="btn btn-primary" 
+                                        className="pinterest-like-edit-button" 
                                         onClick={() => setIsEditing(true)}
                                     >
                                         Редактировать
