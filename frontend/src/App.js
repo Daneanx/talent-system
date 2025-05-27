@@ -66,7 +66,7 @@ const App = () => {
                         userType === 'organizer' ? <OrganizerDashboard /> : <TalentDashboard />
                     )} />
                     <Route path="/register" element={<Register setToken={setToken} setUserType={setUserType} />} />
-                    <Route path="/register/organizer" element={<OrganizerRegister />} />
+                    <Route path="/register/organizer" element={<OrganizerRegister setToken={setToken} setUserType={setUserType} />} />
                     <Route
                         path="/profile"
                         element={token && userType !== 'organizer' ? <Profile /> : <Login setToken={setToken} setUserType={setUserType} />}

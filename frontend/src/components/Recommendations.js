@@ -77,8 +77,10 @@ const Recommendations = () => {
             const response = await api.get('api/skills/');
             if (response.data && Array.isArray(response.data.results)) {
                 setAvailableSkills(response.data.results);
+                console.log('Доступные навыки загружены:', response.data.results);
             } else {
                 setAvailableSkills([]);
+                console.log('Неожиданный формат данных навыков или пустой список:', response.data);
             }
         } catch (err) {
             console.error('Ошибка загрузки навыков:', err);
@@ -165,41 +167,44 @@ const Recommendations = () => {
                             className="form-control"
                         />
                     </div>
-                    {/* Фильтр по факультетам */}
-                    {Array.isArray(faculties) && faculties.length > 0 && (
-                        <div className="faculty-filter">
-                            <label htmlFor="facultyFilter" className="form-label">Фильтр по факультету:</label>
-                            <select
-                                id="facultyFilter"
-                                className="form-select"
-                                value={selectedFaculty}
-                                onChange={handleFacultyChange}
-                            >
-                                <option value="all">Все факультеты</option>
-                                {faculties.map(faculty => (
-                                    <option key={faculty.id} value={faculty.id}>
-                                        {faculty.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
-
-                    <div className="skills-filter">
-                        <h4 className="skills-filter-header" onClick={toggleSkillsFilter} style={{ cursor: 'pointer' }}>
-                            Фильтр по навыкам <i className={`fas ${isSkillsFilterExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
-                        </h4>
-                        <div className={`skills-tags ${isSkillsFilterExpanded ? 'expanded' : 'collapsed'}`}>
-                            {Array.isArray(availableSkills) && availableSkills.map(skill => (
-                                <span 
-                                    key={skill.id} 
-                                    className={`skill-tag ${selectedSkills.includes(skill.id) ? 'active' : ''}`}
-                                    onClick={() => handleSkillToggle(skill.id)}
-                                >
-                                    {skill.name}
-                                </span>
+                    <div className="faculty-filter">
+                        <label htmlFor="facultyFilter" className="form-label">Фильтр по факультету:</label>
+                        <select
+                            id="facultyFilter"
+                            className="form-select"
+                            value={selectedFaculty}
+                            onChange={handleFacultyChange}
+                        >
+                            <option value="all">Все факультеты</option>
+                            {faculties.map(faculty => (
+                                <option key={faculty.id} value={faculty.id}>
+                                    {faculty.name}
+                                </option>
                             ))}
+                        </select>
+                    </div>
+                    <div className="skills-filter">
+                        <div className="skills-filter-header" onClick={toggleSkillsFilter}>
+                            <span>Фильтр по навыкам</span>
+                            <i className={`fas ${isSkillsFilterExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
                         </div>
+                        {isSkillsFilterExpanded && (
+                            <div className="skills-tags">
+                                {console.log('Рендеринг навыков:', availableSkills)}
+                                {Array.isArray(availableSkills) && availableSkills.map(skill => {
+                                    console.log('Рендеринг навыка:', skill.id, skill.name);
+                                    return (
+                                        <span 
+                                            key={skill.id} 
+                                            className={`skill-tag ${selectedSkills.includes(skill.id) ? 'active' : ''}`}
+                                            onClick={() => handleSkillToggle(skill.id)}
+                                        >
+                                            DEBUG_{skill.id}
+                                        </span>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 </div>
                 

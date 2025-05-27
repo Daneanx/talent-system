@@ -26,7 +26,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
-  align-items: flex-end;
+}
+
+.search-filter-container > * {
+  align-self: flex-start;
 }
 
 .search-box {
@@ -65,10 +68,90 @@
 }
 
 .skills-filter {
-  flex-grow: 2;
-  min-width: 250px;
-  margin-top: 15px;
-  margin-bottom: 15px;
+    flex-grow: 2;
+    min-width: 250px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.skills-filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.skills-filter-header:hover {
+    background-color: #e9ecef;
+}
+
+.skills-filter-header span {
+    font-weight: 500;
+    color: #333;
+}
+
+.skills-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    /* padding: 10px; */
+    /* background-color: white; */
+    /* border: 1px solid #ddd; */
+    /* border-radius: 0 0 8px 8px; */
+    /* margin-top: -1px; */
+    /* transition: all 0.3s ease; */
+    /* overflow: hidden; */
+    border: 2px dashed red; /* Временная рамка для отладки */
+    min-height: 30px; /* Временная минимальная высота */
+}
+
+/*
+.skills-tags.collapsed {
+    max-height: 0;
+    padding: 0;
+    border: none;
+    margin-top: 0;
+}
+
+.skills-tags.expanded {
+    max-height: 500px;
+}
+*/
+
+.skills-tags .skill-tag {
+    /* cursor: pointer; */
+    /* transition: all 0.2s ease; */
+    /* background-color: #f0f0f0; */
+    /* padding: 5px 12px; */
+    /* border-radius: 16px; */
+    /* font-size: 0.85rem; */
+    /* border: 1px solid #ddd; */
+    color: blue !important; /* Ярко-синий цвет текста с !important для отладки */
+    border: 1px dashed blue; /* Временная рамка для отладки */
+    min-width: 50px; /* Временная минимальная ширина */
+    min-height: 20px; /* Временная минимальная высота */
+    display: inline-block; /* Убедимся, что элемент ведет себя как блочно-строчный */
+}
+
+.skills-tags .skill-tag:hover {
+    background-color: #e8e8e8;
+    border-color: #ccc;
+}
+
+.skill-tag.active {
+    background-color: #e05748;
+    color: white;
+    border-color: #e05748;
+}
+
+.skill-tag.active:hover {
+    background-color: #c04738;
+    border-color: #c04738;
 }
 
 .skills-filter-label {
@@ -82,44 +165,6 @@
   font-size: 1.1rem;
   margin-bottom: 10px;
   color: #333;
-}
-
-.skills-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  overflow: hidden;
-  transition: max-height 0.5s ease-in-out;
-}
-
-.skills-tags.collapsed {
-  max-height: 0;
-}
-
-.skills-tags.expanded {
-  max-height: 500px;
-}
-
-.skills-tags .skill-tag {
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background-color: #f0f0f0;
-  padding: 5px 12px;
-  border-radius: 16px;
-  font-size: 0.85rem;
-}
-
-.skills-tags .skill-tag.active {
-  background-color: #e05748;
-  color: white;
-}
-
-.skills-tags .skill-tag:hover {
-  background-color: #e8e8e8;
-}
-
-.skills-tags .skill-tag.active:hover {
-  background-color: #c04738;
 }
 
 .tabs-container {

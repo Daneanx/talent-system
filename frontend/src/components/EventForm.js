@@ -117,23 +117,24 @@ const EventForm = () => {
                     formData[key].forEach(id => {
                         formDataToSend.append('required_skill_ids', id);
                     });
-                } else if (key === 'image' && formData[key]) {
-                    formDataToSend.append('image', formData[key]);
+                } else if (key === 'image') {
+                    if (!id || (id && formData[key] instanceof File)) {
+                        if (formData[key]) {
+                            formDataToSend.append('image', formData[key]);
+                        }
+                    }
                 } else if (key !== 'faculties' && key !== 'required_skills') {
                     formDataToSend.append(key, formData[key]);
                 }
             });
 
-            // Добавляем organizer_id при создании мероприятия
             if (!id) {
-                // Получаем organizer_id из локального хранилища (предполагается, что он там сохранен после входа)
-                const organizerId = localStorage.getItem('organizerId'); // Используем ключ 'organizerId'
-
+                const organizerId = localStorage.getItem('organizerId');
                 if (organizerId) {
                     formDataToSend.append('organizer', organizerId);
                 } else {
                     setError('Не удалось определить ID организатора. Пожалуйста, попробуйте войти снова.');
-                    return; // Прерываем выполнение, если нет ID организатора
+                    return;
                 }
             }
 
@@ -237,7 +238,6 @@ const EventForm = () => {
                                     />
                                 </div>
 
-                                {/* Добавляем поле выбора статуса для режима редактирования */}
                                 {id && (
                                     <div className="mb-3">
                                         <label className="form-label">Статус мероприятия</label>

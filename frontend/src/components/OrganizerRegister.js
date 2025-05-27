@@ -62,6 +62,7 @@ const OrganizerRegister = () => {
                 }
 
                 navigate('/organizer/dashboard');
+                window.location.reload();
             } else {
                 setError('Не удалось получить токен авторизации');
             }
