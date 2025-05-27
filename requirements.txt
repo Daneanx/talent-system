@@ -19,6 +19,7 @@ psycopg2-binary==2.9.10
 pycparser==2.22
 PyJWT==2.9.0
 PySocks==1.7.1
+python-docx==1.1.0
 requests==2.32.3
 requests-file==2.1.0
 setuptools==80.7.1
