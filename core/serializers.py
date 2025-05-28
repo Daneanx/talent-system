@@ -3,13 +3,27 @@ from django.contrib.auth.models import User
 from .models import TalentProfile, OrganizerProfile, Event, Application, Faculty, Skill
 from datetime import date
 import re
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True)
+    
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name']
-        extra_kwargs = {'password': {'write_only': True}}
-
+        fields = ('id', 'username', 'email', 'password', 'first_name', 'last_name')
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'required': True}
+        }
+    
+    def validate_password(self, value):
+        try:
+            validate_password(value)
+        except ValidationError as e:
+            raise serializers.ValidationError(list(e.messages))
+        return value
+    
     def validate_first_name(self, value):
         """Нормализует имя: удаляет лишние пробелы."""
         if value:
@@ -32,15 +46,13 @@ class UserSerializer(serializers.ModelSerializer):
         return value # Возвращаем оригинальное значение, если пустое/None
 
     def create(self, validated_data):
-        # Извлекаем first_name и last_name, чтобы передать их create_user
-        first_name = validated_data.pop('first_name', None)
-        last_name = validated_data.pop('last_name', None)
-        user = User.objects.create_user(**validated_data)
-        if first_name:
-            user.first_name = first_name
-        if last_name:
-            user.last_name = last_name
-        user.save()
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password'],
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', '')
+        )
         return user
 
 class FacultySerializer(serializers.ModelSerializer):
