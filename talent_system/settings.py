@@ -172,7 +172,7 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_COOKIE': 'access_token',  # Имя куки
     'AUTH_COOKIE_HTTP_ONLY': True,  # Доступно только через HTTP
-    'AUTH_COOKIE_SECURE': False,  # Для разработки (в продакшене True)
+    'AUTH_COOKIE_SECURE': False, 
     'AUTH_COOKIE_SAMESITE': 'Lax',
 }
 
