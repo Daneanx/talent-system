@@ -2,13 +2,13 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
-from rest_framework.views import APIView # Импортируем APIView
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView # Для создания эндпоинта для логина
-from .models import TalentProfile, OrganizerProfile, Event, Application, Faculty, Skill # Импортируем Skill
+from .models import TalentProfile, OrganizerProfile, Event, Application, Faculty, Skill
 from .serializers import (UserSerializer, TalentProfileSerializer, OrganizerProfileSerializer, 
-                        EventSerializer, ApplicationSerializer, FacultySerializer, SkillSerializer) # Импортируем SkillSerializer
+                        EventSerializer, ApplicationSerializer, FacultySerializer, SkillSerializer)
 from django.db.models import Q, Count
 from django.contrib.auth import authenticate
 from django_filters.rest_framework import DjangoFilterBackend
@@ -16,18 +16,16 @@ from functools import reduce
 import operator
 from rest_framework.parsers import JSONParser, FormParser, MultiPartParser
 from rest_framework import serializers
-from collections import Counter # Импортируем Counter для подсчета навыков
+from collections import Counter
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def register_user(request):
     try:
         print(f"Регистрация пользователя, данные: {request.data}")
-        # Передаем все данные, включая first_name и last_name, в сериализатор
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            # Создание профиля для пользователя с передачей всех данных
             profile = TalentProfile.objects.create(
                 user=user,
                 preferences=request.data.get('preferences', ''),
@@ -38,10 +36,8 @@ def register_user(request):
             )
             print(f"Создан профиль таланта с ID: {profile.id}")
             
-            # Устанавливаем навыки, используя метод set() для ManyToMany поля
             skills_data = request.data.get('skills')
             if skills_data and isinstance(skills_data, list):
-                # Предполагаем, что skills_data содержит список ID навыков
                 profile.skills.set(skills_data)
                 print(f"Установлены навыки для профиля {profile.id}: {skills_data}")
 
@@ -70,14 +66,12 @@ def register_organizer(request):
         'password': request.data.get('password')
     }
     
-    # Проверяем и создаем пользователя
     user_serializer = UserSerializer(data=user_data)
     if user_serializer.is_valid():
         user = user_serializer.save()
         print(f"Создан пользователь с ID: {user.id}")
         
         try:
-            # Создаем профиль организатора
             organizer_data = {
                 'user': user.id,
                 'organization_name': request.data.get('organization_name'),
@@ -88,7 +82,6 @@ def register_organizer(request):
             
             print(f"Данные организатора: {organizer_data}")
             
-            # Создаем профиль напрямую через модель, минуя сериализатор
             organizer_profile = OrganizerProfile.objects.create(
                 user=user,
                 organization_name=organizer_data['organization_name'],
@@ -97,7 +90,6 @@ def register_organizer(request):
                 website=organizer_data['website']
             )
             
-            # Генерируем токен для пользователя
             refresh = RefreshToken.for_user(user)
             
             return Response({
@@ -116,7 +108,6 @@ def register_organizer(request):
             }, status=status.HTTP_201_CREATED)
             
         except Exception as e:
-            # В случае ошибки удаляем пользователя
             user.delete()
             print(f"Ошибка при создании профиля организатора: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -133,7 +124,6 @@ def login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             refresh = RefreshToken.for_user(user)
-            # Определяем тип пользователя
             user_type = 'organizer' if hasattr(user, 'organizerprofile') else 'talent'
             response = Response({
                 'refresh': str(refresh),
@@ -156,21 +146,17 @@ def login(request):
 def create_application(request):
     print(f"Создание заявки, данные: {request.data}")
     
-    # Проверяем наличие event_id в данных
     event_id = request.data.get('event_id')
     if not event_id:
         return Response({"detail": "Отсутствует ID мероприятия (event_id)"}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
-        # Получаем объект мероприятия по ID
         event = Event.objects.get(id=event_id)
 
-        # Получаем профиль текущего пользователя (таланта)
         try:
             talent_profile = request.user.talent_profile
             user_faculty = talent_profile.faculty
         except TalentProfile.DoesNotExist:
-             # Если у пользователя нет профиля таланта, он не может подать заявку как талант
              return Response({"detail": "У вас нет профиля таланта для подачи заявки"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Проверка ограничения по факультетам
@@ -190,10 +176,8 @@ def create_application(request):
         if existing_application:
             return Response({"detail": "Вы уже подали заявку на это мероприятие"}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Создаем сериализатор для валидации и сохранения
         serializer = ApplicationSerializer(data=request.data)
         if serializer.is_valid():
-            # Сохраняем заявку с текущим пользователем и найденным мероприятием
             serializer.save(
                 user=request.user, 
                 event=event
@@ -221,16 +205,13 @@ class TalentProfileViewSet(viewsets.ModelViewSet):
             try:
                 profile = TalentProfile.objects.get(user=user)
                 print(f"Найден существующий профиль для {user.username}")
-                # Если профиль уже существует, обновляем его
                 serializer.update(profile, serializer.validated_data)
             except TalentProfile.DoesNotExist:
                 print(f"Создание нового профиля для {user.username}")
-                # Если профиль новый, сохраняем
                 serializer.save(user=user)
                 
         except Exception as e:
             print(f"Ошибка в perform_create: {str(e)}")
-            # В случае исключения создаем новый профиль с минимальными данными
             TalentProfile.objects.get_or_create(
                 user=self.request.user,
                 defaults={'skills': "", 'preferences': "", 'bio': ""}
@@ -243,7 +224,6 @@ class TalentProfileViewSet(viewsets.ModelViewSet):
                 user_id = self.kwargs.get('user_id')
                 if user_id:
                     return TalentProfile.objects.filter(user_id=user_id).order_by('id')
-                # Иначе возвращаем профиль текущего пользователя
                 return TalentProfile.objects.filter(user=self.request.user).order_by('id')
             return TalentProfile.objects.none()
         except Exception as e:
@@ -257,14 +237,11 @@ class TalentProfileViewSet(viewsets.ModelViewSet):
         # Проверяем наличие файла в запросе
         if 'avatar' in self.request.FILES:
             print(f"Получен новый файл аватара: {self.request.FILES['avatar']}")
-            # Проверяем размер файла (5MB)
             if self.request.FILES['avatar'].size > 5 * 1024 * 1024:
                 raise serializers.ValidationError("Размер файла не должен превышать 5MB")
-            # Проверяем тип файла
             if not self.request.FILES['avatar'].content_type.startswith('image/'):
                 raise serializers.ValidationError("Файл должен быть изображением")
-        
-        # Сохраняем изменения
+
         instance = serializer.save()
         
         print(f"TalentProfileViewSet perform_update: Profile after save -> {instance.avatar.name if instance.avatar else 'No avatar'}")
@@ -323,31 +300,23 @@ class EventViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(organizer=self.request.user)
         
         # Фильтрация по статусу (если не 'published', так как RecommendationView фильтрует только опубликованные)
-        # В EventViewSet мы хотим иметь возможность фильтровать по любому статусу при необходимости
         status_filter = self.request.query_params.get('status')
         if status_filter:
-             # Обрабатываем множественные статусы, если нужно, но пока просто фильтруем по одному
              queryset = queryset.filter(status=status_filter)
 
         # Фильтрация по факультету
         faculty_id = self.request.query_params.get('faculty')
         if faculty_id and faculty_id != 'all':
              try:
-                 # Проверяем, что факультет с таким ID существует
                  faculty = Faculty.objects.get(id=faculty_id)
-                 # Фильтруем мероприятия, которые либо не имеют ограничения по факультету,
-                 # либо имеют ограничение и указанный факультет есть в списке доступных
+
                  queryset = queryset.filter(
                      Q(faculty_restriction=False) | Q(faculties=faculty)
                  ).distinct()
              except Faculty.DoesNotExist:
-                 # Если факультет не найден, возвращаем пустой queryset или все мероприятия (в зависимости от логики)
-                 # Пока вернем пустой, так как запрос на несуществующий факультет некорректен
+
                  return Event.objects.none()
 
-        # Фильтрация по required_skills и date будет обрабатываться DjangoFilterBackend
-        # Убедимся, что фильтры из filterset_fields применяются АВТОМАТИЧЕСКИ DjangoFilterBackend-ом
-        # Этот get_queryset метод в основном для специфичной логики, типа 'organizer=me' и ручной фильтрации по факультету
 
         return queryset
 
@@ -359,10 +328,10 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         try:
             user = self.request.user
             if hasattr(user, 'organizerprofile'):
-                # Для организатора показываем заявки на его мероприятия
+
                 return Application.objects.filter(event__organizer=user).order_by('-created_at')
             else:
-                # Для таланта показываем его заявки
+
                 return Application.objects.filter(user=user).order_by('-created_at')
         except Exception as e:
             print(f"Ошибка в ApplicationViewSet.get_queryset: {str(e)}")
@@ -371,22 +340,22 @@ class ApplicationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         print(f"Создание заявки, данные: {self.request.data}")
         
-        # Проверяем наличие event_id в данных
+
         event_id = self.request.data.get('event_id')
         if not event_id:
             raise serializers.ValidationError({"detail": "Отсутствует ID мероприятия (event_id)"})
         
         try:
-            # Получаем объект мероприятия по ID
+
             event = Event.objects.get(id=event_id)
             user = self.request.user
 
-            # Получаем профиль текущего пользователя (таланта)
+
             try:
                 talent_profile = user.talent_profile
                 user_faculty = talent_profile.faculty
             except TalentProfile.DoesNotExist:
-                 # Если у пользователя нет профиля таланта, он не может подать заявку как талант
+
                  raise serializers.ValidationError({"detail": "У вас нет профиля таланта для подачи заявки"})
 
             # Проверка ограничения по факультетам
@@ -405,7 +374,7 @@ class ApplicationViewSet(viewsets.ModelViewSet):
             if existing_application:
                 raise serializers.ValidationError({"detail": "Вы уже подали заявку на это мероприятие"})
             
-            # Сохраняем заявку с текущим пользователем и найденным мероприятием
+
             serializer.save(
                 user=user, 
                 event=event
@@ -435,22 +404,14 @@ class RecommendationView(ListAPIView):
 
     def get_queryset(self):
         try:
-            # Получаем профиль таланта текущего пользователя
             talent_profile = self.request.user.talent_profile
-            
-            # Получаем навыки таланта
             talent_skills = set(talent_profile.skills.all())
-            
-            # Получаем все опубликованные мероприятия
             events = Event.objects.filter(status='published')
             
-            # Фильтруем мероприятия по навыкам
             recommended_events = []
             for event in events:
-                # Получаем навыки мероприятия
                 event_skills = set(event.required_skills.all())
-                
-                # Если есть пересечение навыков, добавляем мероприятие в рекомендации
+
                 if talent_skills & event_skills:
                     recommended_events.append(event)
             
@@ -462,12 +423,11 @@ class RecommendationView(ListAPIView):
             print(f"Ошибка в RecommendationView.get_queryset: {str(e)}")
             return Event.objects.none()
 
-class FacultyStatsView(APIView): # Меняем с RetrieveAPIView на APIView
+class FacultyStatsView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request, *args, **kwargs):
         try:
-            # Получаем профиль текущего пользователя
             talent_profile = request.user.talent_profile
             
             if not talent_profile or not talent_profile.faculty:
@@ -482,10 +442,8 @@ class FacultyStatsView(APIView): # Меняем с RetrieveAPIView на APIView
             
             faculty = talent_profile.faculty
             
-            # Получаем статистику
             total_users = TalentProfile.objects.filter(faculty=faculty).count()
             
-            # Получаем все заявки от пользователей данного факультета
             faculty_users = TalentProfile.objects.filter(faculty=faculty).values_list('user_id', flat=True)
             total_applications = Application.objects.filter(user_id__in=faculty_users).count()
             
@@ -514,30 +472,23 @@ class UserActivityStatsView(APIView):
         try:
             user = request.user
 
-            # Проверяем, является ли пользователь талантом
             if not hasattr(user, 'talent_profile'):
                  return Response({
                      'message': 'Эта страница доступна только для пользователей-талантов.'
                  }, status=status.HTTP_403_FORBIDDEN)
 
-            # Общее количество поданных заявок
             total_applications = Application.objects.filter(user=user).count()
 
-            # Количество одобренных заявок
             approved_applications = Application.objects.filter(user=user, status='approved').count()
 
             # Статистика по навыкам из мероприятий, на которые пользователь подал заявку
-            # Получаем мероприятия, на которые пользователь подал заявку
             applied_events = Event.objects.filter(application__user=user)
 
             skill_list = []
             for event in applied_events:
-                # Проверяем, есть ли связанные навыки
                 if event.required_skills.exists():
-                    # Получаем названия связанных навыков и добавляем их в skill_list
                     skill_list.extend(event.required_skills.values_list('name', flat=True))
 
-            # Подсчитываем частоту каждого навыка
             skill_counts = dict(Counter(skill_list))
 
             return Response({
@@ -554,14 +505,17 @@ class UserActivityStatsView(APIView):
 class SkillViewSet(viewsets.ModelViewSet):
     queryset = Skill.objects.all().order_by('name')
     serializer_class = SkillSerializer
-    # Разрешаем чтение всем, но создание/обновление/удаление только админам и организаторам
     permission_classes = [AllowAny]
-    pagination_class = None # Отключаем пагинацию для этого ViewSet
-
+    pagination_class = None 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            # Проверяем, является ли пользователь администратором или организатором
             if self.request.user.is_authenticated and (self.request.user.is_staff or hasattr(self.request.user, 'organizerprofile')):
                 return [permissions.IsAuthenticated()]
-            return [permissions.IsAdminUser()] # Только админ имеет полные права
-        return [AllowAny()] # Чтение разрешено всем
+            return [permissions.IsAdminUser()]
+        return [AllowAny()]
+
+class OrganizerProfilePublicView(RetrieveAPIView):
+    queryset = OrganizerProfile.objects.all()
+    serializer_class = OrganizerProfileSerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'pk'

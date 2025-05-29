@@ -11,14 +11,13 @@ def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
     
     if response is None:
-        # Если DRF не обработает ошибку, создаём свою
+        # Если DRF не обработает ошибку
         custom_response_data = {
             'error': True,
             'message': str(exc),
             'status': status.HTTP_500_INTERNAL_SERVER_ERROR
         }
     else:
-        # Формируем пользовательский ответ
         custom_response_data = {
             'error': True,
             'message': response.data.get('detail', 'Произошла ошибка'),

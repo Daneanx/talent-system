@@ -8,15 +8,23 @@ from django.core.exceptions import ValidationError
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
+    organizer_id = serializers.SerializerMethodField()
     
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password', 'first_name', 'last_name')
+        fields = ('id', 'username', 'email', 'password', 'first_name', 'last_name', 'organizer_id')
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True}
         }
     
+    def get_organizer_id(self, obj):
+        """Возвращает ID профиля организатора, если пользователь является организатором."""
+        try:
+            return obj.organizerprofile.id
+        except OrganizerProfile.DoesNotExist:
+            return None
+
     def validate_password(self, value):
         try:
             validate_password(value)
@@ -27,23 +35,18 @@ class UserSerializer(serializers.ModelSerializer):
     def validate_first_name(self, value):
         """Нормализует имя: удаляет лишние пробелы."""
         if value:
-            # Удаляем лишние пробелы
             cleaned_value = value.strip()
             if cleaned_value:
-                return cleaned_value # Возвращаем значение без изменения регистра
-        # Если поле опционально, можно вернуть None или пустую строку
-        # В данном случае, т.к. поле required на фронтенде, считаем его обязательным при заполнении.
-        # Если оно может быть пустым, нужно добавить allow_blank=True в поле сериализатора.
-        return value # Возвращаем оригинальное значение, если пустое/None
+                return cleaned_value 
+        return value
 
     def validate_last_name(self, value):
         """Нормализует фамилию: удаляет лишние пробелы."""
         if value:
-            # Удаляем лишние пробелы
             cleaned_value = value.strip()
             if cleaned_value:
-                return cleaned_value # Возвращаем значение без изменения регистра
-        return value # Возвращаем оригинальное значение, если пустое/None
+                return cleaned_value
+        return value
 
     def create(self, validated_data):
         user = User.objects.create_user(
@@ -78,11 +81,9 @@ class TalentProfileSerializer(serializers.ModelSerializer):
     education_level_display = serializers.CharField(source='get_education_level_display', read_only=True)
     avatar = serializers.ImageField(required=False, allow_null=True)
 
-    # Явно добавляем поля пользователя для обновления через профиль
     first_name = serializers.CharField(source='user.first_name', required=False, allow_blank=True)
     last_name = serializers.CharField(source='user.last_name', required=False, allow_blank=True)
 
-    # Явно определяем поле skills как ManyToManyField с PrimaryKeyRelatedField
     skills = SkillSerializer(many=True, read_only=True)
 
     def validate_preferences(self, value):
@@ -93,23 +94,17 @@ class TalentProfileSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         print(f"TalentProfileSerializer update: Instance -> {instance}")
         print(f"TalentProfileSerializer update: Validated data -> {validated_data}")
-
-        # Извлекаем данные навыков и пользователя
         skills_data = validated_data.pop('skills', None)
         user_data = validated_data.pop('user', None)
 
-        # Обновляем поля TalentProfile (кроме навыков, которые обрабатываются отдельно)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        # Сохраняем изменения профиля таланта
         instance.save()
 
-        # Если данные навыков присутствуют, обновляем связи многие-ко-многим
         if skills_data is not None:
             instance.skills.set(skills_data)
 
-        # Если данные пользователя присутствуют, обновляем связанный объект User
         if user_data:
             user_serializer = self.fields['user']
             user_serializer.update(instance.user, user_data)
@@ -177,7 +172,6 @@ class EventSerializer(serializers.ModelSerializer):
         source='required_skills'
     )
 
-    # Новое поле для статуса заявки текущего пользователя
     user_application_status = serializers.SerializerMethodField()
 
     def get_applications_count(self, obj):
@@ -205,25 +199,20 @@ class EventSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             try:
-                # Пробуем найти заявку текущего пользователя на это мероприятие
                 application = obj.application_set.get(user=request.user)
-                return application.status # Возвращаем статус заявки
+                return application.status
             except Application.DoesNotExist:
-                return None # Если заявки нет, возвращаем null
-        return None # Если пользователь не аутентифицирован, возвращаем null
+                return None
+        return None
 
     def create(self, validated_data):
-        # Извлекаем ManyToMany поля из validated_data
         required_skills_data = validated_data.pop('required_skills', [])
         faculties_data = validated_data.pop('faculties', [])
 
-        # Получаем текущего аутентифицированного пользователя из контекста запроса
         user = self.context['request'].user
 
-        # Создаем объект Event без ManyToMany полей
         event = Event.objects.create(organizer=user, **validated_data)
 
-        # Устанавливаем ManyToMany поля с помощью метода .set()
         event.required_skills.set(required_skills_data)
         event.faculties.set(faculties_data)
 
@@ -235,9 +224,9 @@ class EventSerializer(serializers.ModelSerializer):
             'id', 'organizer', 'organization_name', 'title', 'description',
             'required_skills', 'required_skill_ids', 'date', 'image', 'location', 'status',
             'created_at', 'updated_at', 'applications_count', 'faculty_restriction',
-            'faculties', 'faculty_ids', 'user_application_status' # Добавляем новое поле
+            'faculties', 'faculty_ids', 'user_application_status'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'user_application_status'] # Убрали 'organizer'
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user_application_status']
 
 class ApplicationSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)

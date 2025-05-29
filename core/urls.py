@@ -3,8 +3,9 @@ from rest_framework.routers import DefaultRouter
 from .views import (TalentProfileViewSet, OrganizerProfileViewSet, EventViewSet, 
                    ApplicationViewSet, RecommendationView, register_user, 
                    register_organizer, login, FacultyViewSet, create_application,
-                   FacultyStatsView, UserActivityStatsView, SkillViewSet)
-from rest_framework_simplejwt.views import TokenObtainPairView # Для создания эндпоинта для логина
+                   FacultyStatsView, UserActivityStatsView, SkillViewSet,
+                   OrganizerProfilePublicView)
+from rest_framework_simplejwt.views import TokenObtainPairView 
 
 router = DefaultRouter()
 router.register(r'profiles', TalentProfileViewSet)
@@ -23,4 +24,5 @@ urlpatterns = [
     path('apply/', create_application, name='create-application'),
     path('faculty/stats/', FacultyStatsView.as_view(), name='faculty-stats'),
     path('user/activity/stats/', UserActivityStatsView.as_view(), name='user-activity-stats'),
+    path('organizers/<int:pk>/', OrganizerProfilePublicView.as_view(), name='organizer-public-profile'),
 ]
