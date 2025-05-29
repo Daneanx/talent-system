@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import './NavBar.css'; // Предполагаем, что стили для навигации будут здесь
+import './NavBar.css';
 
 const NavBar = ({ token, userType, setToken, setUserType }) => {
-    const location = useLocation(); // Используем useLocation здесь
+    const location = useLocation();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
     };
 
-    // Закрывается dropdown при клике вне его
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (!event.target.closest('.dropdown')) {
@@ -46,7 +45,7 @@ const NavBar = ({ token, userType, setToken, setUserType }) => {
                                     <button 
                                         className={`nav-link dropdown-toggle ${isDropdownOpen ? 'show' : ''}`}
                                         onClick={toggleDropdown}
-                                        style={{ background: 'none', border: 'none' }} // Убираем стандартные стили кнопки
+                                        style={{ background: 'none', border: 'none' }}
                                     >
                                         Регистрация
                                     </button>

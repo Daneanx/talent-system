@@ -1,0 +1,59 @@
+body {
+    background-color: #f0f0f0;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+.profile-card {
+    border-radius: 8px;
+    box-shadow: none;
+    border: 1px solid #e0e0e0;
+    overflow: visible; 
+    transition: none; 
+    position: relative; 
+}
+
+.profile-card:hover {
+    transform: none;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1); 
+}
+
+.profile-card .card-body {
+    padding: 20px;
+}
+
+.card-title {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.info-item {
+    margin-bottom: 15px; 
+}
+
+.info-item h5 {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #555; 
+    margin-bottom: 5px;
+}
+
+.info-item p {
+    color: #333;
+    font-size: 0.95rem; 
+    line-height: 1.6; 
+}
+
+.text-muted {
+    font-style: italic;
+}
+
+.description-box {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    white-space: pre-wrap;
+    margin-top: 5px;
+    min-height: 100px;
+}

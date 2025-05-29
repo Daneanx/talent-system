@@ -22,22 +22,18 @@ const EventCard = ({ event, isOrganizer = false, isDashboardCard = false }) => {
         });
         // Сбрасываем состояние ошибки загрузки изображения при смене мероприятия
         setImageLoadError(false);
-    }, [event]); // Добавляем event в зависимости
+    }, [event]);
 
-    // Проверка на валидность объекта события для рендеринга
     if (!event || typeof event !== 'object') {
         console.error('EventCard: Invalid event object for rendering', event);
         return null;
     }
 
-    // Форматирование даты с проверкой
     const formatDate = (dateString) => {
         if (!dateString) return 'Дата не указана';
         try {
             const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            // Добавляем опцию timeZone для избежания проблем с часовыми поясами
             const date = new Date(dateString);
-             // Проверяем, является ли дата действительной
             if (isNaN(date.getTime())) {
                 console.error('EventCard: Invalid date string for formatting', dateString);
                 return 'Некорректная дата';
@@ -49,9 +45,7 @@ const EventCard = ({ event, isOrganizer = false, isDashboardCard = false }) => {
         }
     };
     
-    // Получение списка навыков с ограничением
     const getSkills = (limit = isDashboardCard ? 3 : Infinity) => {
-        // Проверяем, что event и required_skills являются массивом перед map
         if (!event || !Array.isArray(event.required_skills)) {
             return [];
         }
@@ -89,7 +83,6 @@ const EventCard = ({ event, isOrganizer = false, isDashboardCard = false }) => {
         }
     };
 
-    // Определяем URL изображения и добавляем базовый URL бэкенда, если путь относительный
     const imageUrl = event.image 
         ? (event.image.startsWith('http') ? event.image : `http://127.0.0.1:8000${event.image}`)
         : null;
@@ -113,23 +106,16 @@ const EventCard = ({ event, isOrganizer = false, isDashboardCard = false }) => {
                         <span>{event.title ? event.title.substring(0, 1).toUpperCase() : '?'}</span>
                     </div>
                 )}
-                {/* Отображаем статус заявки для талантов или статус мероприятия для организаторов и других */}
                 {isDashboardCard ? (
-                    // Для карточек на дашборде организатора отображаем статус мероприятия
                     <div className={`event-status ${getEventStatusDisplay(event.status).class}`}>
                         {getEventStatusDisplay(event.status).text}
                     </div>
                 ) : (
-                    // Для карточек на странице рекомендаций (талант)
                     event.user_application_status ? (
-                        // Если есть статус заявки, отображаем его
                         <div className={`event-status ${getApplicationStatusDisplay(event.user_application_status).class}`}>
                             {getApplicationStatusDisplay(event.user_application_status).text}
                         </div>
-                    ) : (
-                        // Если нет статуса заявки, не отображаем статус
-                        null
-                    )
+                    ) : null
                 )}
             </div>
             <div className="event-card-content">
@@ -171,7 +157,6 @@ const EventCard = ({ event, isOrganizer = false, isDashboardCard = false }) => {
     );
 };
 
-// Добавляем PropTypes для EventCard
 EventCard.propTypes = {
   event: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,

@@ -43,22 +43,12 @@ const Login = ({ setToken, setUserType }) => {
       localStorage.setItem('userType', response.data.userType);
       api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
 
-      // Если пользователь - организатор, получаем и сохраняем его ID
       if (response.data.userType === 'organizer') {
-        try {
-          const profileResponse = await api.get('api/organizer/profiles/');
-          // Предполагаем, что ответ api/organizer/profiles/ содержит массив профилей, берем первый
-          if (profileResponse.data && Array.isArray(profileResponse.data.results) && profileResponse.data.results.length > 0) {
-            const organizerId = profileResponse.data.results[0].id;
-            localStorage.setItem('organizerId', organizerId);
-          } else if (profileResponse.data && profileResponse.data.id) { // Если ответ - одиночный объект
-             const organizerId = profileResponse.data.id;
-             localStorage.setItem('organizerId', organizerId);
-          }
-        } catch (profileErr) {
-          console.error('Ошибка при получении профиля организатора после входа:', profileErr);
-          // Не блокируем вход, но выводим ошибку
-          setError('Не удалось загрузить ID организатора. Некоторые функции могут быть недоступны.');
+        if (response.data.organizer_id) {
+          localStorage.setItem('organizerId', response.data.organizer_id);
+        } else {
+          console.warn('Organizer logged in, but organizer_id not found in login response.');
+          setError('Вход выполнен, но не удалось получить ID организатора. Обратитесь к администратору.');
         }
       }
 

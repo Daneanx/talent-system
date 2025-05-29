@@ -30,7 +30,6 @@ const OrganizerDashboard = () => {
                 api.get('api/applications/')
             ]);
             
-            // Проверяем и обрабатываем ответ с событиями
             let eventsData = [];
             if (eventsResponse.data) {
                 if (Array.isArray(eventsResponse.data)) {
@@ -38,11 +37,9 @@ const OrganizerDashboard = () => {
                 } else if (eventsResponse.data.results && Array.isArray(eventsResponse.data.results)) {
                     eventsData = eventsResponse.data.results;
                 }
-                // Если данные не в нужном формате, используем пустой массив
             }
             setEvents(eventsData);
             
-            // Если мы получили массив профилей, берем первый (текущего организатора)
             let profileData = null;
             if (profileResponse.data) {
                 if (Array.isArray(profileResponse.data) && profileResponse.data.length > 0) {
@@ -55,7 +52,6 @@ const OrganizerDashboard = () => {
             }
             setOrganizerProfile(profileData);
             
-            // Проверяем и обрабатываем ответ с заявками
             let applicationsData = [];
             if (applicationsResponse.data) {
                 if (Array.isArray(applicationsResponse.data)) {
@@ -63,7 +59,6 @@ const OrganizerDashboard = () => {
                 } else if (applicationsResponse.data.results && Array.isArray(applicationsResponse.data.results)) {
                     applicationsData = applicationsResponse.data.results;
                 }
-                // Если данные не в нужном формате, используем пустой массив
             }
             setApplications(applicationsData);
             
@@ -81,7 +76,6 @@ const OrganizerDashboard = () => {
                 status: newStatus,
                 organizer_comment: comments[applicationId] || ''
             });
-            // Обновляем список заявок
             fetchData();
         } catch (err) {
             setError('Ошибка при обновлении статуса заявки');
@@ -93,7 +87,6 @@ const OrganizerDashboard = () => {
             await api.patch(`api/events/${eventId}/`, {
                 status: newStatus
             });
-            // Обновляем список мероприятий
             fetchData();
         } catch (err) {
             setError('Ошибка при обновлении статуса мероприятия');
@@ -102,7 +95,6 @@ const OrganizerDashboard = () => {
 
     // Фильтрация событий по поиску и статусу
     const filteredEvents = () => {
-        // Проверяем, что events - это массив
         if (!Array.isArray(events)) {
             return [];
         }
@@ -200,10 +192,10 @@ const OrganizerDashboard = () => {
                                 className="status-select"
                             >
                                 <option value="all">Все</option>
-                                <option value="draft">Черновик</option>
-                                <option value="published">Опубликовано</option>
-                                <option value="closed">Закрыто</option>
-                                <option value="cancelled">Отменено</option>
+                                <option value="published">Опубликованные</option>
+                                <option value="draft">Черновики</option>
+                                <option value="closed">Закрытые</option>
+                                <option value="cancelled">Отмененные</option>
                             </select>
                         </div>
                     </div>
@@ -246,7 +238,7 @@ const OrganizerDashboard = () => {
                                         <div className="applicant-info">
                                             <p><strong>Талант:</strong> {application.user.first_name} {application.user.last_name} ({application.user.username})</p>
                                             <p><strong>Навыки:</strong>
-                                                {/* Проверяем, что skills - это массив и не пустой */}
+                                                {}
                                                 {application.talent_profile?.skills && Array.isArray(application.talent_profile.skills) && application.talent_profile.skills.length > 0 ? (
                                                     <div className={`skills-list-container ${expandedSkills[application.id] ? 'expanded' : ''}`}>
                                                         {application.talent_profile.skills.map((skill, index) => (
@@ -257,7 +249,7 @@ const OrganizerDashboard = () => {
                                                     <span>Не указаны</span>
                                                 )}
                                             </p>
-                                            {/* Кнопка "Развернуть" для навыков, если их много */}
+                                            {}
                                             {application.talent_profile?.skills && application.talent_profile.skills.length > 5 && (
                                                 <button
                                                     className="skills-expansion-button pinterest-button"
@@ -276,7 +268,7 @@ const OrganizerDashboard = () => {
                                                     <button 
                                                         className="message-expansion-button pinterest-button"
                                                         onClick={(e) => {
-                                                            e.stopPropagation(); // Предотвращаем всплытие события клика
+                                                            e.stopPropagation();
                                                             toggleMessageExpansion(application.id);
                                                         }}
                                                     >

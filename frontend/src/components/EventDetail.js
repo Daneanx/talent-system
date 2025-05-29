@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../api';
 import './EventDetail.css';
 
@@ -13,7 +13,7 @@ const EventDetail = () => {
     const [message, setMessage] = useState('');
     const [applicationSuccess, setApplicationSuccess] = useState(false);
     const [applicationError, setApplicationError] = useState('');
-    const [isSkillsExpanded, setIsSkillsExpanded] = useState(false);
+    const [isSkillsExpanded, setIsSkillsExpanded] = useState(true);
     
     useEffect(() => {
         fetchEvent();
@@ -23,6 +23,7 @@ const EventDetail = () => {
         try {
             const response = await api.get(`api/events/${id}/`);
             setEvent(response.data);
+            console.log('Загруженное мероприятие:', response.data);
             setLoading(false);
         } catch (err) {
             console.error('Ошибка загрузки мероприятия:', err);
@@ -43,11 +44,11 @@ const EventDetail = () => {
         try {
             console.log('Отправка заявки на мероприятие ID:', id);
             
-            // Преобразуем id в число, если он в виде строки
+
             const eventId = parseInt(id, 10);
             
             await api.post('api/applications/', {
-                event_id: eventId, // Используем правильное имя поля event_id вместо event
+                event_id: eventId, 
                 message: message
             });
             
@@ -59,21 +60,19 @@ const EventDetail = () => {
             console.log('Full error object:', err);
             console.log('Error response data:', err.response?.data);
             
-            // Устанавливаем текст ошибки из ответа бэкенда или общее сообщение
+
             const errorMessage = err.response?.data?.detail || 
                                err.response?.data?.error || 
                                'Ошибка при подаче заявки. Проверьте, не подавали ли вы заявку ранее.';
             
             let finalErrorMessage = errorMessage;
 
-            // Попробуем извлечь сообщение из поля 'message' в ответе, если оно есть и является строкой с нужной подстрокой
             if (err.response?.data?.message && typeof err.response.data.message === 'string') {
                 const messageString = err.response.data.message;
                 const detailMatch = messageString.match(/"detail":\s*"(.*?)"/);
                 if (detailMatch && detailMatch[1]) {
                     finalErrorMessage = detailMatch[1];
                 } else {
-                    // Если detail не найдено в строке, используем всю строку message
                     finalErrorMessage = messageString;
                 }
             }
@@ -96,12 +95,10 @@ const EventDetail = () => {
 
     // Получение массива названий навыков из массива объектов навыков
     const getSkills = (requiredSkills) => {
-        // Проверяем, что requiredSkills является массивом
         if (!Array.isArray(requiredSkills)) {
             console.error('EventDetail: requiredSkills is not an array', requiredSkills);
             return [];
         }
-        // Возвращаем массив объектов навыков
         return requiredSkills;
     };
 
@@ -157,7 +154,7 @@ const EventDetail = () => {
                         
                         <div className="meta-item">
                             <i className="fas fa-user"></i>
-                            <span>Организатор: {event.organization_name || 'Не указан'}</span>
+                            <span>Организатор: {event.organizer?.id ? (<Link to={`/organizer/${event.organizer.id}`} className="organizer-link">{event.organization_name || 'Не указан'}</Link>) : (event.organization_name || 'Не указан')}</span>
                         </div>
                     </div>
                     

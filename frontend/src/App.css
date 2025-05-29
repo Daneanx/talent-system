@@ -476,12 +476,10 @@ a:hover, button:hover {
 }
 
 /* Стили для страницы регистрации организатора */
-/* Уменьшаем отступы между элементами формы */
 .container.mt-5 .card .card-body .mb-3 {
     margin-bottom: 8px;
 }
 
-/* Уменьшаем padding карточки на мобильных */
 @media (max-width: 768px) {
     .container.mt-5 .card .card-body {
         padding: 15px;
@@ -490,34 +488,34 @@ a:hover, button:hover {
 
 /* Стили для страницы регистрации таланта */
 .register-container .card {
-    border-radius: 16px; /* Pinterest-like rounded corners */
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1); /* Softer shadow */
+    border-radius: 16px; 
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1); 
     background-color: #fff;
-    padding: 15px; /* Further reduce padding */
-    max-width: 550px; /* Set max width to 550px */
-    margin: 15px auto; /* Reduce vertical margin */
+    padding: 15px;
+    max-width: 550px;
+    margin: 15px auto; 
 }
 
 .register-container .card-body {
-    padding: 0 5px; /* Further reduce horizontal padding */
+    padding: 0 5px; 
 }
 
 .register-container .register-title {
     font-size: 2rem;
     font-weight: 600;
-    color: #333; /* Dark grey for title */
+    color: #333; 
     text-align: center;
     margin-bottom: 20px;
 }
 
 .register-container .form-label {
     font-weight: 500;
-    color: #555; /* Slightly lighter grey for labels */
-    margin-bottom: 6px; /* Further reduce margin below labels */
+    color: #555; 
+    margin-bottom: 6px;
 }
 
 .register-container .form-control {
-    border-radius: 8px; /* Smaller radius for input fields */
+    border-radius: 8px;
     border: 1px solid #ddd;
     padding: 10px 15px;
     font-size: 0.9rem;
@@ -525,18 +523,18 @@ a:hover, button:hover {
 }
 
 .register-container .form-control:focus {
-    border-color: #e05748; /* Pinterest red border */
-    box-shadow: 0 0 0 0.2rem rgba(224, 87, 72, 0.25); /* Subtle red shadow */
+    border-color: #e05748; 
+    box-shadow: 0 0 0 0.2rem rgba(224, 87, 72, 0.25); 
 }
 
 .register-container .btn-primary {
-    border-radius: 20px; /* Pinterest-like pill shape */
+    border-radius: 20px; 
     padding: 12px;
     font-weight: 500;
     width: 100%;
-    background-color: #e05748; /* Pinterest red */
+    background-color: #e05748;
     border: none;
-    transition: background-color 0.2s ease, opacity 0.2s ease; /* Add transition */
+    transition: background-color 0.2s ease, opacity 0.2s ease; 
 }
 
 .register-container .btn-primary:hover {
@@ -546,25 +544,23 @@ a:hover, button:hover {
 .register-container .btn-primary:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    background-color: #e05748; /* Keep the same color when disabled */
+    background-color: #e05748; 
 }
 
 .register-container .alert-danger {
-    border-radius: 8px; /* Match input field radius */
+    border-radius: 8px; 
     margin-bottom: 20px;
 }
 
-/* Уменьшаем отступы между элементами формы на странице регистрации таланта */
 .register-container .card .card-body .mb-3 {
-    margin-bottom: 6px; /* Further reduce bottom margin */
+    margin-bottom: 6px; 
 }
 
-/* Уменьшаем padding карточки на мобильных */
 @media (max-width: 768px) {
     .register-container .card {
-        padding: 10px; /* Further reduce padding on mobile */
+        padding: 10px; 
     }
     .register-container .card-body {
-        padding: 0 5px; /* Consistent horizontal padding on mobile */
+        padding: 0 5px; 
     }
 }

@@ -26,26 +26,22 @@ const Recommendations = () => {
 
     const fetchData = async () => {
         try {
-            // Запрашиваем рекомендации и все опубликованные мероприятия
             const [recResponse, eventsResponse] = await Promise.all([
                 api.get('api/recommendations/'),
                 api.get('api/events/?status=published')
             ]);
             
-            // Обрабатываем данные рекомендаций
             let recommendationsData = recResponse.data;
             if (!Array.isArray(recommendationsData)) {
                 recommendationsData = recommendationsData?.results || [];
             }
             setRecommendations(recommendationsData);
             
-            // Обрабатываем данные всех событий
             let eventsData = eventsResponse.data;
-            // Проверяем, является ли response.data объектом с полем results (как в случае пагинации)
             if (eventsData && eventsData.results && Array.isArray(eventsData.results)) {
-                 eventsData = eventsData.results; // Используем массив из results
+                 eventsData = eventsData.results; 
             } else if (!Array.isArray(eventsData)) {
-                 eventsData = []; // Если не массив и не объект с results, считаем пустым
+                 eventsData = []; 
             }
             setAllEvents(eventsData);
             
@@ -60,23 +56,21 @@ const Recommendations = () => {
     const fetchFaculties = async () => {
         try {
             const response = await api.get('api/faculties/');
-             // Убедимся, что получаем массив из results
             if (response.data && Array.isArray(response.data.results)) {
                  setFaculties(response.data.results);
              } else {
-                 setFaculties([]); // Устанавливаем пустой массив, если данные не в ожидаемом формате
+                 setFaculties([]);
              }
         } catch (err) {
             console.error('Ошибка загрузки факультетов:', err);
-            // Обрабатываем ошибку загрузки факультетов, но не блокируем отображение мероприятий
         }
     };
 
     const fetchSkills = async () => {
         try {
             const response = await api.get('api/skills/');
-            if (response.data && Array.isArray(response.data.results)) {
-                setAvailableSkills(response.data.results);
+            if (response.data && Array.isArray(response.data)) {
+                setAvailableSkills(response.data);
                 console.log('Доступные навыки загружены:', response.data.results);
             } else {
                 setAvailableSkills([]);
@@ -115,7 +109,6 @@ const Recommendations = () => {
                 event.title.toLowerCase().includes(term) || 
                 event.description.toLowerCase().includes(term) ||
                 event.location.toLowerCase().includes(term) ||
-                 // Добавляем поиск по факультетам, если они есть в объекте события
                  (event.faculties && event.faculties.some(f => f.name.toLowerCase().includes(term)))
             );
         }
@@ -147,7 +140,7 @@ const Recommendations = () => {
             <div className="recommendations-header">
                 <div className="header-and-button">
                     <h2>Мероприятия</h2>
-                    {/* Проверяем, что пользователь - талант и добавляем кнопку */}
+                    {}
                     {localStorage.getItem('userType') !== 'organizer' && (
                          <button 
                             className="pinterest-like-button ms-auto"
@@ -188,23 +181,21 @@ const Recommendations = () => {
                             <span>Фильтр по навыкам</span>
                             <i className={`fas ${isSkillsFilterExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
                         </div>
-                        {isSkillsFilterExpanded && (
-                            <div className="skills-tags">
-                                {console.log('Рендеринг навыков:', availableSkills)}
-                                {Array.isArray(availableSkills) && availableSkills.map(skill => {
-                                    console.log('Рендеринг навыка:', skill.id, skill.name);
-                                    return (
-                                        <span 
-                                            key={skill.id} 
-                                            className={`skill-tag ${selectedSkills.includes(skill.id) ? 'active' : ''}`}
-                                            onClick={() => handleSkillToggle(skill.id)}
-                                        >
-                                            DEBUG_{skill.id}
-                                        </span>
-                                    );
-                                })}
-                            </div>
-                        )}
+                        <div className={`skills-tags ${isSkillsFilterExpanded ? '' : 'collapsed'}`}>
+                            {console.log('Рендеринг навыков:', availableSkills)}
+                            {Array.isArray(availableSkills) && availableSkills.map(skill => {
+                                console.log('Рендеринг навыка:', skill.id, skill.name);
+                                return (
+                                    <span 
+                                        key={skill.id} 
+                                        className={`skill-tag ${selectedSkills.includes(skill.id) ? 'active' : ''}`}
+                                        onClick={() => handleSkillToggle(skill.id)}
+                                    >
+                                        {skill.name}
+                                    </span>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
                 

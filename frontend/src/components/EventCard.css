@@ -14,6 +14,7 @@
 .event-card:hover {
   transform: translateY(-5px);
   box-shadow: var(--hover-shadow);
+  transform: scale(1.02);
   border-color: var(--primary-color);
 }
 
@@ -327,31 +328,36 @@
 }
 
 .event-skills {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 10px;
-  max-height: 40px;
+  gap: 5px;
+  margin-top: 10px;
+  margin-bottom: 0;
+  max-height: 80px !important;
   overflow: hidden;
-  transition: max-height 0.5s ease-in-out;
+  opacity: 0;
+  transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out, margin-bottom 0.5s ease-in-out;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .event-card:hover .event-skills {
-  max-height: 200px;
-  overflow: visible;
+  max-height: 100px;
+  opacity: 1;
+  margin-bottom: 10px;
 }
 
 .skill-tag {
-  background-color: #f1f1f1;
-  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #f0f0f0;
+  padding: 2px 6px;
   border-radius: 12px;
-  font-size: 0.75rem;
-  color: #555;
-  /* Добавляем разные цвета для бейджей навыков */
-  /* Это базовый стиль, цвета будут переопределяться через JS или inline-стили */
+  font-size: 0.7rem;
+  border: 1px solid #ddd;
+  display: inline-block;
 }
 
-/* Добавляем предопределенные классы цветов (пример, можно расширить) */
 .skill-tag.color-1 { background-color: #e0f7fa; color: #0077a6; }
 .skill-tag.color-2 { background-color: #e8f5e9; color: #33691e; }
 .skill-tag.color-3 { background-color: #fff3e0; color: #e65100; }
@@ -380,14 +386,15 @@
   padding: 10px;
   border-radius: 8px;
   background-color: #f9f9f9;
+  max-height: 200px !important;
   overflow: hidden;
-  max-height: 40px;
   transition: max-height 0.5s ease-in-out;
   cursor: pointer;
 }
 
 .event-card:hover .event-faculties-restriction {
   max-height: 300px;
+  overflow-y: auto;
   position: static;
   left: auto;
   right: auto;
@@ -423,11 +430,21 @@
   color: #e05748;
 }
 
-/* Masonry grid container */
 .masonry-grid {
-  column-count: 3;
-  column-gap: 20px;
-  padding: 20px;
+  column-count: 2;
+  column-gap: 30px;
+  padding: 30px;
+}
+
+.masonry-grid .event-card {
+  break-inside: avoid;
+  margin-bottom: 30px;
+}
+
+@media (min-width: 1200px) {
+  .masonry-grid {
+    column-count: 3;
+  }
 }
 
 @media (max-width: 991px) {
@@ -444,19 +461,18 @@
 
 /* Стили для маленьких карточек на дашборде */
 .event-card-dashboard {
-  /* Убираем тень и трансформацию при наведении для более плотного вида */
   box-shadow: none;
   transform: none;
-  border: 1px solid #eee; /* Добавляем тонкую границу */
+  border: 1px solid #eee;
 }
 
 .event-card-dashboard:hover {
-  transform: translateY(-3px); /* Немного анимации при наведении */
-  box-shadow: rgba(0, 0, 0, 0.08) 0px 4px 12px; /* Добавляем легкую тень */
+  transform: translateY(-3px);
+  box-shadow: rgba(0, 0, 0, 0.08) 0px 4px 12px;
 }
 
 .event-card-dashboard .event-card-header {
-    height: 120px; /* Уменьшаем высоту картинки */
+    height: 120px;
 }
 
 .event-card-dashboard .event-card-content {
@@ -464,12 +480,12 @@
 }
 
 .event-card-dashboard .event-card-title {
-  font-size: var(--font-size-base); /* Уменьшаем размер заголовка */
+  font-size: var(--font-size-base);
   margin-bottom: var(--spacing-xs);
 }
 
 .event-card-dashboard .event-date {
-  font-size: var(--font-size-sm); /* Уменьшаем размер даты */
+  font-size: var(--font-size-sm);
   margin-bottom: var(--spacing-sm);
 }
 
@@ -477,7 +493,7 @@
 .event-card-dashboard .event-applications-count,
 .event-card-dashboard .event-faculties-restriction,
 .event-card-dashboard .event-status {
-  display: none; /* Скрываем лишнюю информацию */
+  display: none;
 }
 
 .event-card-dashboard .event-skills {
@@ -486,14 +502,14 @@
   flex-wrap: wrap;
   gap: 5px;
   margin-top: 10px;
-  max-height: 40px; /* Ограничиваем высоту для 1-2 строк бейджей */
-  overflow: hidden; /* Скрываем лишние */
+  max-height: 40px;
+  overflow: hidden;
   transition: max-height 0.6s ease-in-out;
 }
 
 .event-card-dashboard:hover .event-skills {
-  max-height: 200px; /* Достаточно, чтобы показать все бейджи */
-  overflow: visible; /* Показываем все содержимое при наведении */
+  max-height: 200px;
+  overflow: visible;
 }
 
 .event-card-dashboard .skill-tag {

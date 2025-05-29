@@ -69,7 +69,6 @@ const OrganizerRegister = () => {
         } catch (err) {
             console.error('Registration error:', err.response || err);
             if (err.response && err.response.data) {
-                // Более подробная обработка ошибок
                 if (typeof err.response.data === 'object') {
                     const errorMessages = [];
                     for (const key in err.response.data) {

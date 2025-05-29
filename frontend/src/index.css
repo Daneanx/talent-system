@@ -21,7 +21,7 @@ code {
   column-count: 3;
   column-gap: 20px;
   padding: 20px;
-  column-width: 300px; /* Минимальная ширина колонки */
+  column-width: 300px;
 }
 
 @media (max-width: 991px) {
@@ -38,7 +38,6 @@ code {
   }
 }
 
-/* Animate.css-подобные анимации */
 .fade-in {
   animation: fadeIn 0.5s ease-in;
 }

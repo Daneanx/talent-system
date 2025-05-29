@@ -382,7 +382,6 @@
   background-color: #d1d1d1;
 }
 
-/* Переносим стили цветов бейджей ниже */
 .applications-list .skill-tag.color-1 { background-color: #e0f7fa; color: #0077a6; }
 .applications-list .skill-tag.color-2 { background-color: #e8f5e9; color: #33691e; }
 .applications-list .skill-tag.color-3 { background-color: #fff3e0; color: #e65100; }
@@ -392,7 +391,7 @@
 /* Добавляем медиа-запрос для адаптивности */
 @media (max-width: 768px) {
   .application-card {
-    width: 100%; /* На маленьких экранах - одна колонка */
+    width: 100%; 
   }
 }
 

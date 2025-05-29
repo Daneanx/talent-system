@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
-import './ApplicationsList.css'; // Используем собственный CSS файл
+import './ApplicationsList.css';
 
 const ApplicationsList = () => {
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const navigate = useNavigate();
-    const [expandedMessages, setExpandedMessages] = useState({}); // State to track expanded messages
+    const [expandedMessages, setExpandedMessages] = useState({});
 
     useEffect(() => {
         fetchApplications();

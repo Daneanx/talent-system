@@ -22,9 +22,10 @@
 }
 
 .search-filter-container {
-  margin-bottom: 20px;
+  margin-bottom: 5px;
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 20px;
 }
 
@@ -96,46 +97,26 @@
 }
 
 .skills-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    /* padding: 10px; */
-    /* background-color: white; */
-    /* border: 1px solid #ddd; */
-    /* border-radius: 0 0 8px 8px; */
-    /* margin-top: -1px; */
-    /* transition: all 0.3s ease; */
-    /* overflow: hidden; */
-    border: 2px dashed red; /* Временная рамка для отладки */
-    min-height: 30px; /* Временная минимальная высота */
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out;
 }
 
-/*
 .skills-tags.collapsed {
     max-height: 0;
-    padding: 0;
-    border: none;
-    margin-top: 0;
+    padding-top: 0;
+    padding-bottom: 0;
 }
-
-.skills-tags.expanded {
-    max-height: 500px;
-}
-*/
 
 .skills-tags .skill-tag {
-    /* cursor: pointer; */
-    /* transition: all 0.2s ease; */
-    /* background-color: #f0f0f0; */
-    /* padding: 5px 12px; */
-    /* border-radius: 16px; */
-    /* font-size: 0.85rem; */
-    /* border: 1px solid #ddd; */
-    color: blue !important; /* Ярко-синий цвет текста с !important для отладки */
-    border: 1px dashed blue; /* Временная рамка для отладки */
-    min-width: 50px; /* Временная минимальная ширина */
-    min-height: 20px; /* Временная минимальная высота */
-    display: inline-block; /* Убедимся, что элемент ведет себя как блочно-строчный */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #f0f0f0;
+    padding: 5px 12px;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    border: 1px solid #ddd;
+    display: inline-block; 
 }
 
 .skills-tags .skill-tag:hover {
@@ -163,7 +144,6 @@
 
 .skills-filter-header {
   font-size: 1.1rem;
-  margin-bottom: 10px;
   color: #333;
 }
 
@@ -223,27 +203,26 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
 }
 
-/* Add Pinterest-like button styles */
 .pinterest-like-button {
-    background-color: #e05748; /* Pinterest red */
-    color: white; /* White text */
-    border: none; /* No border */
-    border-radius: 20px; /* Pill shape */
-    padding: 8px 16px; /* Adequate padding */
-    font-size: 0.9rem; /* Slightly smaller font */
-    font-weight: 600; /* Bold text */
-    cursor: pointer; /* Indicate clickable */
-    transition: background-color 0.2s ease; /* Smooth hover effect */
+    background-color: #e05748; 
+    color: white; 
+    border: none; 
+    border-radius: 20px; 
+    padding: 8px 16px; 
+    font-size: 0.9rem; 
+    font-weight: 600; 
+    cursor: pointer;
+    transition: background-color 0.2s ease; 
 }
 
 .pinterest-like-button:hover {
-    background-color: #c04738; /* Darker red on hover */
+    background-color: #c04738; 
 }
 
 .pinterest-like-button:focus {
-    outline: none; /* Remove focus outline */
-    box-shadow: 0 0 0 0.2rem rgba(224, 87, 72, 0.5); /* Add a subtle focus ring */
+    outline: none; 
+    box-shadow: 0 0 0 0.2rem rgba(224, 87, 72, 0.5); 
 } 

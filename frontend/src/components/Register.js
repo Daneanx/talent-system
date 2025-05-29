@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import PropTypes from 'prop-types';
-import './Register.css'; // Новый CSS-файл
+import './Register.css';
 
 const AGU_FACULTIES = [
   { id: 1, name: 'Агро-биологический факультет' },
@@ -33,28 +33,25 @@ const Register = ({ setToken, setUserType }) => {
     faculty_id: '',
     education_level: '',
     course: '',
-    skills: [] // Изменяем на массив для выбранных навыков
+    skills: []
   });
   const faculties = AGU_FACULTIES;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [availableSkills, setAvailableSkills] = useState([]); // Состояние для доступных навыков
+  const [availableSkills, setAvailableSkills] = useState([]);
 
   useEffect(() => {
-      // Загрузка списка навыков при монтировании компонента
       const fetchSkills = async () => {
           try {
               const response = await api.get('api/skills/');
-              // Проверяем, что ответ является массивом, так как пагинация отключена
               if (response.data && Array.isArray(response.data)) {
                   setAvailableSkills(response.data);
               } else {
                   console.error('Неожиданный формат данных навыков или ответ не является массивом:', response.data);
-                  setAvailableSkills([]); // Устанавливаем пустой массив, чтобы избежать ошибок
+                  setAvailableSkills([]);
               }
           } catch (err) {
               console.error('Ошибка загрузки навыков:', err);
-              // Обработка ошибки загрузки навыков, возможно, вывод сообщения пользователю
           }
       };
 
@@ -69,18 +66,15 @@ const Register = ({ setToken, setUserType }) => {
     }));
   };
 
-  // Обработчик выбора/снятия выбора навыка
   const handleSkillSelect = (skillId) => {
       setFormData(prevState => {
           const selectedSkills = prevState.skills;
           if (selectedSkills.includes(skillId)) {
-              // Навык уже выбран, удаляем его
               return {
                   ...prevState,
                   skills: selectedSkills.filter(id => id !== skillId)
               };
           } else {
-              // Навык не выбран, добавляем его
               return {
                   ...prevState,
                   skills: [...selectedSkills, skillId]
@@ -112,7 +106,7 @@ const Register = ({ setToken, setUserType }) => {
         password: formData.password,
         first_name: formData.first_name,
         last_name: formData.last_name,
-        skills: formData.skills, // Отправляем массив ID навыков
+        skills: formData.skills,
         preferences: formData.preferences,
         bio: formData.bio,
         faculty_id: formData.faculty_id,
@@ -293,7 +287,7 @@ const Register = ({ setToken, setUserType }) => {
                     {availableSkills.map(skill => (
                         <button
                             key={skill.id}
-                            type="button" // Важно, чтобы кнопка не отправляла форму
+                            type="button"
                             className={`skill-tile ${formData.skills.includes(skill.id) ? 'selected' : ''}`}
                             onClick={() => handleSkillSelect(skill.id)}
                         >

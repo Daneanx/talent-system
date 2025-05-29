@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-// import axios from 'axios'; // Удаляем неиспользуемый импорт
 import api from '../api';
 import './Profile.css';
 
@@ -35,7 +34,6 @@ const Profile = () => {
                 setPreferences(userProfile.preferences || '');
                 setBio(userProfile.bio || '');
                 setAvatarPreview(userProfile.avatar || null);
-                // Устанавливаем выбранные навыки из профиля
                 if (userProfile.skills && Array.isArray(userProfile.skills)) {
                     if (userProfile.skills.length > 0 && typeof userProfile.skills[0] === 'number') {
                         setSelectedSkills(userProfile.skills);
@@ -60,16 +58,15 @@ const Profile = () => {
         try {
             const response = await api.get('api/skills/');
             console.log('Данные получены с api/skills/', response.data);
-            // Проверяем, что ответ является массивом, так как пагинация отключена
             if (response.data && Array.isArray(response.data)) {
                 setAvailableSkills(response.data);
             } else {
                 console.error('Неожиданный формат данных навыков или ответ не является массивом:', response.data);
-                setAvailableSkills([]); // Устанавливаем пустой массив, чтобы избежать ошибок
+                setAvailableSkills([]); 
             }
         } catch (err) {
             console.error('Ошибка при загрузке навыков:', err);
-            setAvailableSkills([]); // Устанавливаем пустой массив в случае ошибки запроса
+            setAvailableSkills([]); 
         }
     };
 
@@ -147,7 +144,6 @@ const Profile = () => {
         formData.append('user.first_name', firstName);
         formData.append('user.last_name', lastName);
 
-        // Отправляем только ID навыков
         selectedSkills.forEach(skillId => {
             if (skillId !== undefined && skillId !== null) {
                 formData.append('skills', skillId);
@@ -186,7 +182,6 @@ const Profile = () => {
                 setIsEditing(false);
                 setTimeout(() => setSaveSuccess(false), 3000);
                 fetchSkills();
-                // Перезагружаем страницу после успешного сохранения
                 window.location.reload();
             }
         } catch (err) {

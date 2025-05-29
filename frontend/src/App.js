@@ -16,19 +16,18 @@ import FacultyStats from './components/FacultyStats';
 import UserActivity from './components/UserActivity';
 import NavBar from './components/NavBar';
 import api from './api';
+import OrganizerProfileView from './components/OrganizerProfileView';
 
 const App = () => {
     const [token, setToken] = useState(localStorage.getItem('token') || '');
     const [userType, setUserType] = useState(localStorage.getItem('userType') || '');
 
     useEffect(() => {
-        // Проверяет токен и тип пользователя при загрузке и изменении
         const storedToken = localStorage.getItem('token');
         const storedUserType = localStorage.getItem('userType');
         
         if (storedToken !== token) {
             setToken(storedToken || '');
-            // Устанавливаем токен в заголовки запросов
             if (storedToken) {
                 api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
             } else {
@@ -47,7 +46,6 @@ const App = () => {
             setUserType('');
             delete api.defaults.headers.common['Authorization'];
         } else {
-            // При каждом обновлении страницы устанавливаем токен
             api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
         }
     }, [token, userType]);
@@ -102,6 +100,10 @@ const App = () => {
                     <Route
                         path="/events/:id"
                         element={token ? <EventDetail /> : <Login setToken={setToken} setUserType={setUserType} />}
+                    />
+                    <Route
+                        path="/organizer/:organizerId"
+                        element={token ? <OrganizerProfileView /> : <Login setToken={setToken} setUserType={setUserType} />}
                     />
                     <Route
                         path="/talents/:id"

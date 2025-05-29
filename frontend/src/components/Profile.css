@@ -225,17 +225,15 @@
     padding-top: 20px;
 }
 
-/* Style for admin contact message */
 .admin-contact-message {
     font-size: 0.85rem;
-    color: #e05748; /* Use Pinterest red */
+    color: #e05748;
     text-align: center;
     margin-top: 15px;
     padding-top: 15px;
-    border-top: 1px dashed #eee; /* Add a subtle dashed line above */
+    border-top: 1px dashed #eee;
 }
 
-/* Медиа-запросы для адаптивности (если нужно) */
 @media (max-width: 768px) {
     .profile-card {
         padding: 15px;
@@ -263,32 +261,32 @@
     border-color: #212529;
 }
 
-/* Add Pinterest-like button style */
+
 .pinterest-like-button {
-    background-color: #e05748; /* Pinterest red */
-    color: white; /* White text */
-    border: none; /* No border */
-    border-radius: 20px; /* Pill shape */
-    padding: 8px 16px; /* Adequate padding */
-    font-size: 0.9rem; /* Slightly smaller font */
-    font-weight: 600; /* Bold text */
-    cursor: pointer; /* Indicate clickable */
-    transition: background-color 0.2s ease, opacity 0.2s ease; /* Smooth hover and disabled effect */
+    background-color: #e05748;
+    color: white; 
+    border: none; 
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: background-color 0.2s ease, opacity 0.2s ease; 
 }
 
 .pinterest-like-button:hover {
-    background-color: #c04738; /* Darker red on hover */
+    background-color: #c04738; 
 }
 
 .pinterest-like-button:focus {
-    outline: none; /* Remove focus outline */
-    box-shadow: 0 0 0 0.2rem rgba(224, 87, 72, 0.5); /* Add a subtle focus ring */
+    outline: none; 
+    box-shadow: 0 0 0 0.2rem rgba(224, 87, 72, 0.5);
 }
 
 .pinterest-like-button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    background-color: #e05748; /* Keep the same color when disabled */
+    background-color: #e05748; 
 }
 
 .profile-header-row {
@@ -298,7 +296,7 @@
 .profile-title {
     /* Стили для заголовка, чтобы он не центрировался */
     text-align: left; 
-    flex-grow: 1; /* Позволяет заголовку занять доступное пространство */
+    flex-grow: 1; 
 } 
 
 .edit-profile-btn {
@@ -320,5 +318,5 @@
 
 /* Стили для режима редактирования */
 .profile-edit-mode .mb-3 {
-    margin-bottom: 15px; /* Увеличиваем нижний отступ для элементов формы в режиме редактирования */
+    margin-bottom: 15px;
 }

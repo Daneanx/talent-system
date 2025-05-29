@@ -23,7 +23,6 @@ const OrganizerProfile = () => {
 
     const fetchProfile = async () => {
         try {
-            // Проверяем наличие токена
             const token = localStorage.getItem('token');
             if (!token) {
                 setError('Токен отсутствует, пожалуйста, войдите в систему');
@@ -33,7 +32,6 @@ const OrganizerProfile = () => {
 
             const response = await api.get('api/organizer/profiles/');
             
-            // Данные могут прийти как массив или как объект с полем results
             let profileData;
             if (Array.isArray(response.data) && response.data.length > 0) {
                 profileData = response.data[0];
@@ -53,11 +51,9 @@ const OrganizerProfile = () => {
             setLoading(false);
         } catch (err) {
             console.error('Ошибка загрузки профиля организатора:', err);
-            
-            // Проверяем ошибку авторизации
+
             if (err.response && err.response.status === 401) {
                 setError('Токен отсутствует или недействителен, пожалуйста, войдите в систему');
-                // Перенаправляем на страницу входа
                 localStorage.removeItem('token');
                 localStorage.removeItem('userType');
                 setTimeout(() => {
@@ -90,7 +86,6 @@ const OrganizerProfile = () => {
                 setSaveSuccess(true);
                 setIsEditing(false);
                 
-                // Обновляем данные профиля
                 fetchProfile();
             } else {
                 setError('Не удалось определить ID профиля организатора');

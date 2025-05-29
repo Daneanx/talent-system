@@ -107,6 +107,7 @@ const EventForm = () => {
         setError('');
 
         try {
+            console.log('Attempting to submit event form.', formData);
             const formDataToSend = new FormData();
             Object.keys(formData).forEach(key => {
                 if (key === 'faculty_ids') {
@@ -130,10 +131,12 @@ const EventForm = () => {
 
             if (!id) {
                 const organizerId = localStorage.getItem('organizerId');
+                console.log('Retrieved organizerId from localStorage:', organizerId);
                 if (organizerId) {
                     formDataToSend.append('organizer', organizerId);
                 } else {
                     setError('Не удалось определить ID организатора. Пожалуйста, попробуйте войти снова.');
+                    console.error('organizerId not found in localStorage.');
                     return;
                 }
             }

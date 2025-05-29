@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
-import './Profile.css'; // Переиспользуем стили из компонента Profile
+import './Profile.css';
 
 const TalentProfileView = () => {
     const { id } = useParams();
@@ -22,7 +22,6 @@ const TalentProfileView = () => {
     const fetchTalentProfile = async () => {
         try {
             setLoading(true);
-            // Получаем профиль таланта по его ID пользователя
             const response = await api.get(`api/profiles/talent/${id}/`);
             setProfile(response.data);
             setUser(response.data.user);
@@ -54,7 +53,6 @@ const TalentProfileView = () => {
                 return;
             }
 
-            // Отправляем сообщение таланту
             await api.post(`api/messages/send/`, {
                 recipient_id: id,
                 message: message
@@ -62,7 +60,6 @@ const TalentProfileView = () => {
 
             setMessageSent(true);
             setMessage('');
-            // Закрываем модальное окно через 3 секунды
             setTimeout(() => {
                 setContactModalOpen(false);
                 setMessageSent(false);
@@ -115,7 +112,7 @@ const TalentProfileView = () => {
                                                 border: '3px solid #eee',
                                                 transition: 'all 0.3s ease'
                                             }}>
-                                                {/* Можно добавить иконку пользователя или текст */}
+                                                {}
                                             </div>
                                         )}
                                     </div>
@@ -201,7 +198,7 @@ const TalentProfileView = () => {
                 </div>
             </div>
 
-            {/* Модальное окно для отправки сообщения - оставляем, организатор может захотеть связаться */}
+            {}
             {contactModalOpen && (
                 <div className="contact-modal-overlay">
                     <div className="contact-modal">

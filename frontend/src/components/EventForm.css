@@ -1,21 +1,21 @@
 body {
-    background-color: #f0f0f0; /* Светло-серый фон как на Pinterest */
-    font-family: 'Helvetica Neue', Arial, sans-serif; /* Шрифт как на Pinterest */
+    background-color: #f0f0f0; 
+    font-family: 'Helvetica Neue', Arial, sans-serif; 
 }
 
 .container.mt-4 {
-    margin-top: 30px !important; /* Увеличим отступ сверху */
-    margin-bottom: 30px; /* Добавим отступ снизу */
+    margin-top: 30px !important;
+    margin-bottom: 30px;
 }
 
 .card.shadow-sm {
-    border-radius: 8px; /* Скругленные углы */
-    box-shadow: none; /* Убираем стандартную тень */
-    border: 1px solid #e0e0e0; /* Тонкая серая рамка */
+    border-radius: 8px; 
+    box-shadow: none; 
+    border: 1px solid #e0e0e0;
 }
 
 .card-body {
-    padding: 30px; /* Увеличим внутренние отступы */
+    padding: 30px;
 }
 
 .image-preview-container {
@@ -50,11 +50,11 @@ body {
 }
 
 .img-preview {
-    max-width: 100%; /* Изображение не должно выходить за контейнер */
-    height: auto; /* Сохраняем пропорции */
-    border-radius: 8px; /* Скругленные углы */
-    border: 1px solid #ddd; /* Легкая рамка */
-    margin-top: 10px; /* Отступ сверху */
+    max-width: 100%;
+    height: auto; 
+    border-radius: 8px; 
+    border: 1px solid #ddd; 
+    margin-top: 10px;
 }
 
 .form-check {
@@ -62,7 +62,7 @@ body {
 }
 
 .form-check-input:checked {
-    background-color: #e05748; /* Цвет чекбокса при выборе */
+    background-color: #e05748; 
     border-color: #e05748;
 }
 
@@ -72,7 +72,7 @@ body {
     outline: none;
 }
 
-.form-select[multiple] {
+ .form-select[multiple] {
     height: auto;
     min-height: 120px;
 }
@@ -82,8 +82,8 @@ body {
 }
 
 .form-select[multiple] option:checked {
-    background-color: #e05748; /* Цвет фона выбранной опции */
-    color: white; /* Цвет текста выбранной опции */
+    background-color: #e05748; 
+    color: white; 
 }
 
 .form-text {
@@ -102,44 +102,44 @@ body {
 }
 
 .card-title.text-center.mb-4 {
-    font-weight: 700; /* Жирный шрифт */
-    color: #333; /* Цвет текста */
-    margin-bottom: 25px !important; /* Увеличим нижний отступ */
+    font-weight: 700;
+    color: #333; 
+    margin-bottom: 25px !important; 
 }
 
 .form-label {
-    font-weight: 600; /* Жирный шрифт для лейблов */
-    color: #555; /* Цвет лейблов */
-    margin-bottom: 8px; /* Отступ снизу */
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
 }
 
 .form-control, .form-select {
-    border-radius: 8px; /* Скругленные углы */
-    border: 1px solid #ddd; /* Тонкая рамка */
-    padding: 10px 15px; /* Внутренние отступы */
-    box-shadow: none; /* Убираем тень */
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    padding: 10px 15px; 
+    box-shadow: none; 
     transition: border-color 0.2s ease;
 }
 
 .form-control:focus, .form-select:focus {
-    border-color: #e05748; /* Цвет рамки при фокусе */
-    box-shadow: 0 0 0 0.2rem rgba(224, 87, 72, 0.25); /* Легкая тень при фокусе */
-    outline: none; /* Убираем стандартный outline */
+    border-color: #e05748;
+    box-shadow: 0 0 0 0.2rem rgba(224, 87, 72, 0.25); 
+    outline: none;
 }
 
 textarea.form-control {
-    resize: vertical; /* Разрешаем только вертикальное изменение размера */
+    resize: vertical; 
 }
 
 .btn-primary.w-100 {
-    background-color: #e05748; /* Цвет кнопки как на Pinterest */
+    background-color: #e05748;
     border-color: #e05748;
     color: white;
-    border-radius: 20px; /* Скругленные углы */
-    padding: 10px 20px; /* Внутренние отступы */
-    font-weight: 500; /* Жирность шрифта */
+    border-radius: 20px;
+    padding: 10px 20px; 
+    font-weight: 500; 
     transition: background-color 0.2s ease;
-    width: 100% !important; /* Убедимся, что кнопка занимает всю ширину */
+    width: 100% !important;
 }
 
 .btn-primary.w-100:hover {
